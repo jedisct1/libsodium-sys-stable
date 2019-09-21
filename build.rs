@@ -6,6 +6,7 @@ extern crate libc;
 #[cfg(target_env = "msvc")]
 extern crate vcpkg;
 
+#[cfg(feature = "fetch-latest")]
 extern crate isahc;
 extern crate libflate;
 extern crate minisign_verify;
@@ -264,6 +265,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         .arg(&prefix_arg)
         .arg(&host_arg)
         .arg("--enable-shared=no")
+        .arg("--disable-dependency-tracking")
         .output()
         .unwrap_or_else(|error| {
             panic!("Failed to run './configure': {}\n{}", error, help);
@@ -387,14 +389,15 @@ fn build_libsodium() {
     use libflate::gzip::Decoder;
     use minisign_verify::{PublicKey, Signature};
     use std::fs::{self, File};
-    use std::io::{Read, Write};
+    use std::io::Read;
+    #[cfg(features = "fetch-latest")]
+    use std::io::Write;
     use tar::Archive;
 
     // Determine build target triple
     let target = env::var("TARGET").unwrap();
 
     // Determine filenames
-    let baseurl = "https://download.libsodium.org/libsodium/releases";
     let basedir = "libsodium-stable";
     let basename = format!("libsodium-{}-stable", VERSION);
     let filename = format!("{}.tar.gz", basename);
@@ -402,24 +405,37 @@ fn build_libsodium() {
     let pk =
         PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
 
-    let response = isahc::get(&format!("{}/{}", baseurl, filename)).unwrap();
     let mut archive_bin = vec![];
-    response.into_body().read_to_end(&mut archive_bin).unwrap();
-    File::create(&filename)
-        .unwrap()
-        .write_all(&archive_bin)
-        .unwrap();
 
-    let response = isahc::get(&format!("{}/{}", baseurl, signature_filename)).unwrap();
-    let mut signature_bin = vec![];
-    response
-        .into_body()
-        .read_to_end(&mut signature_bin)
-        .unwrap();
-    File::create(&signature_filename)
-        .unwrap()
-        .write_all(&signature_bin)
-        .unwrap();
+    #[cfg(feature = "fetch-latest")]
+    {
+        let baseurl = "https://download.libsodium.org/libsodium/releases";
+        let response = isahc::get(&format!("{}/{}", baseurl, filename)).unwrap();
+        response.into_body().read_to_end(&mut archive_bin).unwrap();
+        File::create(&filename)
+            .unwrap()
+            .write_all(&archive_bin)
+            .unwrap();
+
+        let response = isahc::get(&format!("{}/{}", baseurl, signature_filename)).unwrap();
+        let mut signature_bin = vec![];
+        response
+            .into_body()
+            .read_to_end(&mut signature_bin)
+            .unwrap();
+        File::create(&signature_filename)
+            .unwrap()
+            .write_all(&signature_bin)
+            .unwrap();
+    }
+
+    #[cfg(not(feature = "fetch-latest"))]
+    {
+        File::open(&filename)
+            .unwrap()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+    }
 
     let signature = Signature::from_file(&signature_filename).unwrap();
 
