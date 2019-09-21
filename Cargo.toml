@@ -9,7 +9,7 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/sodiumoxide/sodiumoxide.git"
 categories = ["cryptography", "api-bindings"]
-version = "0.0.19"
+version = "1.18.1"
 
 [badges]
 travis-ci = { repository = "sodiumoxide/sodiumoxide" }
@@ -37,6 +37,5 @@ name = "libsodium_sys"
 [features]
 use-pkg-config = []
 fetch-latest = ["isahc"]
-
-
-
+optimized = []
+minimal = []

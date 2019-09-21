@@ -260,6 +260,10 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     if env::var("SODIUM_DISABLE_PIE").is_ok() {
         configure_cmd.arg("--disable-pie");
     }
+    #[cfg(feature = "optimized")]
+    configure_cmd.arg("--enable-opt");
+    #[cfg(feature = "minimal")]
+    configure_cmd.arg("--enable-minimal");
     let configure_output = configure_cmd
         .current_dir(&source_dir)
         .arg(&prefix_arg)
