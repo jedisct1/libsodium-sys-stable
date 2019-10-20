@@ -393,9 +393,7 @@ fn build_libsodium() {
     use libflate::gzip::Decoder;
     use minisign_verify::{PublicKey, Signature};
     use std::fs::{self, File};
-    use std::io::Read;
-    #[cfg(features = "fetch-latest")]
-    use std::io::Write;
+    use std::io::prelude::*;
     use tar::Archive;
 
     // Determine build target triple
