@@ -18,8 +18,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-static VERSION: &'static str = "1.0.18";
-
 fn main() {
     println!("cargo:rerun-if-env-changed=SODIUM_LIB_DIR");
     println!("cargo:rerun-if-env-changed=SODIUM_SHARED");
@@ -86,11 +84,7 @@ fn find_libsodium_env() {
         "sodium"
     };
     println!("cargo:rustc-link-lib={}={}", mode, name);
-    println!(
-        "cargo:warning=Using unknown libsodium version.  This crate is tested against \
-         {} and may not be fully compatible with other versions.",
-        VERSION
-    );
+    println!("cargo:warning=Using unknown libsodium version.");
 }
 
 /* Must be called when no SODIUM_USE_PKG_CONFIG env var is set
@@ -100,11 +94,7 @@ This function will set `cargo` flags.
 fn find_libsodium_pkg() {
     match vcpkg::probe_package("libsodium") {
         Ok(lib) => {
-            println!(
-                "cargo:warning=Using unknown libsodium version.  This crate is tested against \
-                 {} and may not be fully compatible with other versions.",
-                VERSION
-            );
+            println!("cargo:warning=Using unknown libsodium version");
             for lib_dir in &lib.link_paths {
                 println!("cargo:lib={}", lib_dir.to_str().unwrap());
             }
@@ -125,13 +115,6 @@ This function will set `cargo` flags.
 fn find_libsodium_pkg() {
     match pkg_config::Config::new().probe("libsodium") {
         Ok(lib) => {
-            if lib.version != VERSION {
-                println!(
-                    "cargo:warning=Using libsodium version {}.  This crate is tested against {} \
-                     and may not be fully compatible with {}.",
-                    lib.version, VERSION, lib.version
-                );
-            }
             for lib_dir in &lib.link_paths {
                 println!("cargo:lib={}", lib_dir.to_str().unwrap());
             }
@@ -400,7 +383,7 @@ fn build_libsodium() {
 
     // Determine filenames
     let basedir = "libsodium-stable";
-    let basename = format!("libsodium-{}-stable", VERSION);
+    let basename = "LATEST";
     let filename = format!("{}.tar.gz", basename);
     let signature_filename = format!("{}.tar.gz.minisig", basename);
     let pk =
