@@ -18,7 +18,7 @@ travis-ci = { repository = "sodiumoxide/sodiumoxide" }
 pkg-config = "0.3"
 tar = "0.4"
 libflate = "0.1"
-isahc ={ version = "0.8", optional = true }
+ureq = { version = "0.11", optional = true, default-features = false, features = ["tls"] }
 minisign-verify = "0.1"
 
 [target.'cfg(target_env = "msvc")'.build-dependencies]
@@ -35,7 +35,8 @@ libc = { version = "0.2" , default-features = false }
 name = "libsodium_sys"
 
 [features]
+default = []
 use-pkg-config = []
-fetch-latest = ["isahc"]
+fetch-latest = ["ureq"]
 optimized = []
 minimal = []

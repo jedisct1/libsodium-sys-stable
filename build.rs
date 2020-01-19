@@ -6,12 +6,12 @@ extern crate libc;
 #[cfg(target_env = "msvc")]
 extern crate vcpkg;
 
-#[cfg(feature = "fetch-latest")]
-extern crate isahc;
 extern crate libflate;
 extern crate minisign_verify;
 extern crate pkg_config;
 extern crate tar;
+#[cfg(feature = "fetch-latest")]
+extern crate ureq;
 
 use std::{
     env,
@@ -394,17 +394,20 @@ fn build_libsodium() {
     #[cfg(feature = "fetch-latest")]
     {
         let baseurl = "https://download.libsodium.org/libsodium/releases";
-        let response = isahc::get(&format!("{}/{}", baseurl, filename)).unwrap();
-        response.into_body().read_to_end(&mut archive_bin).unwrap();
+        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
+        response
+            .into_reader()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
         File::create(&filename)
             .unwrap()
             .write_all(&archive_bin)
             .unwrap();
 
-        let response = isahc::get(&format!("{}/{}", baseurl, signature_filename)).unwrap();
+        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
         let mut signature_bin = vec![];
         response
-            .into_body()
+            .into_reader()
             .read_to_end(&mut signature_bin)
             .unwrap();
         File::create(&signature_filename)
