@@ -17,7 +17,7 @@ travis-ci = { repository = "sodiumoxide/sodiumoxide" }
 [build-dependencies]
 pkg-config = "0.3"
 tar = "0.4"
-libflate = "0.1"
+libflate = "1.0"
 ureq = { version = "0.12", optional = true, default-features = false, features = ["tls"] }
 minisign-verify = "0.1"
 
