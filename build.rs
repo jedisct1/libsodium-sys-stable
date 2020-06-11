@@ -379,7 +379,15 @@ fn build_libsodium() {
     use tar::Archive;
 
     // Determine build target triple
-    let target = env::var("TARGET").unwrap();
+    let mut target = env::var("TARGET").unwrap();
+    // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
+    if target.starts_with("riscv") {
+        let mut split = target.split("-");
+        let arch = split.next().unwrap();
+        let bitness = &arch[5..7];
+        let rest = split.collect::<Vec<_>>().join("-");
+        target = format!("riscv{}-{}", bitness, rest);
+    }
 
     // Determine filenames
     let basedir = "libsodium-stable";
