@@ -1,18 +1,15 @@
 [package]
-authors = ["dnaq"]
+authors = ["dnaq", "jedisct1"]
 build = "build.rs"
-description = "FFI binding to libsodium"
-documentation = "https://sodiumoxide.github.io/sodiumoxide"
-keywords = ["libsodium", "NaCl", "crypto"]
+description = "FFI bindings for libsodium stable"
+documentation = "https://docs.rs/libsodium-sys-stable"
+keywords = ["libsodium", "NaCl", "crypto", "cryptography"]
 license = "MIT OR Apache-2.0"
 links = "sodium"
 name = "libsodium-sys-stable"
-repository = "https://github.com/sodiumoxide/sodiumoxide.git"
+repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.19.7"
-
-[badges]
-travis-ci = { repository = "sodiumoxide/sodiumoxide" }
+version = "1.19.8"
 
 [build-dependencies]
 pkg-config = "0.3"
