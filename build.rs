@@ -143,6 +143,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     let build_compiler = cc::Build::new().get_compiler();
     let mut compiler = build_compiler.path().to_str().unwrap().to_string();
     let mut cflags = build_compiler.cflags_env().into_string().unwrap();
+    let ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
     let host_arg;
     let cross_compiling;
     let help;
@@ -239,6 +240,9 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     if !cflags.is_empty() {
         configure_cmd.env("CFLAGS", &cflags);
     }
+    if !ldflags.is_empty() {
+        configure_cmd.env("LDFLAGS", &ldflags);
+    }
     if env::var("SODIUM_DISABLE_PIE").is_ok() {
         configure_cmd.arg("--disable-pie");
     }
@@ -258,9 +262,10 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         });
     if !configure_output.status.success() {
         panic!(
-            "\n{:?}\nCFLAGS={}\nCC={}\n{}\n{}\n{}\n",
+            "\n{:?}\nCFLAGS={}\nLDFLAGS={}\nCC={}\n{}\n{}\n{}\n",
             configure_cmd,
             cflags,
+            ldflags,
             compiler,
             String::from_utf8_lossy(&configure_output.stdout),
             String::from_utf8_lossy(&configure_output.stderr),
