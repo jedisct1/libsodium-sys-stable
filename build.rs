@@ -409,6 +409,7 @@ fn build_libsodium() {
         let baseurl = "https://download.libsodium.org/libsodium/releases";
         let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
         response
+            .unwrap()
             .into_reader()
             .read_to_end(&mut archive_bin)
             .unwrap();
@@ -420,6 +421,7 @@ fn build_libsodium() {
         let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
         let mut signature_bin = vec![];
         response
+            .unwrap()
             .into_reader()
             .read_to_end(&mut signature_bin)
             .unwrap();
