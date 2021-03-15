@@ -123,7 +123,7 @@ fn find_libsodium_pkg() {
             }
         }
         Err(e) => {
-            panic!(format!("Error: {:?}", e));
+            panic!("Error: {:?}", e);
         }
     }
 }
