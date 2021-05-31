@@ -362,12 +362,12 @@ fn get_archive(filename: &str) -> std::io::Cursor<Vec<u8>> {
     use std::fs::File;
     use std::io::{BufReader, Read};
 
-    let f = File::open(filename).expect(&format!("Failed to open {}", filename));
+    let f = File::open(filename).unwrap_or_else(|_| panic!("Failed to open {}", filename));
     let mut reader = BufReader::new(f);
     let mut content = Vec::new();
     reader
         .read_to_end(&mut content)
-        .expect(&format!("Failed to read {}", filename));
+        .unwrap_or_else(|_| panic!("Failed to read {}", filename));
 
     std::io::Cursor::new(content)
 }
@@ -387,7 +387,7 @@ fn build_libsodium() {
     let mut target = env::var("TARGET").unwrap();
     // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
     if target.starts_with("riscv") {
-        let mut split = target.split("-");
+        let mut split = target.split('-');
         let arch = split.next().unwrap();
         let bitness = &arch[5..7];
         let rest = split.collect::<Vec<_>>().join("-");
@@ -450,10 +450,10 @@ fn build_libsodium() {
 
     // Avoid issues with paths containing spaces by falling back to using a tempfile.
     // See https://github.com/jedisct1/libsodium/issues/207
-    if install_dir.to_str().unwrap().contains(" ") {
+    if install_dir.to_str().unwrap().contains(' ') {
         let fallback_path = PathBuf::from("/tmp/").join(&basename).join(&target);
-        install_dir = fallback_path.clone().join("installed");
-        source_dir = fallback_path.clone().join("/source");
+        install_dir = fallback_path.join("installed");
+        source_dir = fallback_path.join("/source");
         println!(
             "cargo:warning=The path to the usual build directory contains spaces and hence \
              can't be used to build libsodium.  Falling back to use {}.  If running `cargo \
