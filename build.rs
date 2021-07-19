@@ -147,7 +147,18 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     let host_arg;
     let cross_compiling;
     let help;
-    if target.contains("-ios") {
+    let mut configure_extra = vec![];
+
+    if target.contains("-wasi") {
+        cross_compiling = true;
+        compiler = "zig cc --target=wasm32-wasi".to_string();
+        host_arg = "--host=wasm32-wasi".to_string();
+        configure_extra.push("--disable-ssp");
+        configure_extra.push("--without-pthreads");
+        env::set_var("AR", "zig ar");
+        env::set_var("RANLIB", "zig ranlib");
+        help = "The Zig SDK needs to be installed in order to cross-compile to WebAssembly\n";
+    } else if target.contains("-ios") {
         // Determine Xcode directory path
         let xcode_select_output = Command::new("xcode-select").arg("-p").output().unwrap();
         if !xcode_select_output.status.success() {
@@ -254,6 +265,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         .current_dir(&source_dir)
         .arg(&prefix_arg)
         .arg(&host_arg)
+        .args(configure_extra)
         .arg("--enable-shared=no")
         .arg("--disable-dependency-tracking")
         .output()
