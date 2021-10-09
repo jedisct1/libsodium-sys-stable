@@ -6,6 +6,7 @@ REGEX="(SODIUM|sodium|crypto|randombytes)_.*"
 
 bindgen PATH_TO/libsodium-1.0.18/src/libsodium/include/sodium.h -o sodium_bindings.rs \
   --ctypes-prefix=libc --use-core \
+  --size_t-is-usize \
   --generate=functions,types,vars \
   --whitelist-function=$REGEX \
   --whitelist-type=$REGEX \

@@ -453,7 +453,7 @@ fn build_libsodium() {
 
     let signature = Signature::from_file(&signature_filename).unwrap();
 
-    pk.verify(&archive_bin, &signature)
+    pk.verify(&archive_bin, &signature, false)
         .expect("Invalid signature");
 
     // Determine source and install dir
