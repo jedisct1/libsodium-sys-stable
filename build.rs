@@ -5,6 +5,8 @@ extern crate cc;
 extern crate libc;
 #[cfg(target_env = "msvc")]
 extern crate vcpkg;
+#[cfg(target_env = "msvc")]
+extern crate zip;
 
 extern crate libflate;
 extern crate minisign_verify;
@@ -129,10 +131,68 @@ fn find_libsodium_pkg() {
 }
 
 #[cfg(all(windows, target_env = "msvc"))]
-fn make_libsodium(_: &str, _: &Path, _: &Path) -> PathBuf {
-    // We don't build anything on windows, we simply linked to precompiled
-    // libs.
-    get_lib_dir()
+fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
+    use minisign_verify::{PublicKey, Signature};
+    use std::fs::{self, File};
+    use std::io::prelude::*;
+    use zip::read::ZipArchive;
+
+    let basename = "libsodium-1.0.18-stable-msvc";
+    let filename = format!("{}.zip", basename);
+    let signature_filename = format!("{}.zip.minisig", basename);
+    let pk =
+        PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
+
+    let mut archive_bin = vec![];
+
+    #[cfg(feature = "fetch-latest")]
+    {
+        let baseurl = "https://download.libsodium.org/libsodium/releases";
+        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
+        response
+            .unwrap()
+            .into_reader()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+        File::create(&filename)
+            .unwrap()
+            .write_all(&archive_bin)
+            .unwrap();
+
+        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
+        let mut signature_bin = vec![];
+        response
+            .unwrap()
+            .into_reader()
+            .read_to_end(&mut signature_bin)
+            .unwrap();
+        File::create(&signature_filename)
+            .unwrap()
+            .write_all(&signature_bin)
+            .unwrap();
+    }
+
+    #[cfg(not(feature = "fetch-latest"))]
+    {
+        File::open(&filename)
+            .unwrap()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+    }
+
+    let signature = Signature::from_file(&signature_filename).unwrap();
+
+    pk.verify(&archive_bin, &signature, false)
+        .expect("Invalid signature");
+
+    // Get binaries
+    let compressed_file = get_archive(&filename);
+
+    // Unpack the zip
+    let mut archive = ZipArchive::new(compressed_file).unwrap();
+    archive.extract(&install_dir).unwrap();
+
+    get_lib_dir(install_dir)
 }
 
 #[cfg(all(windows, not(target_env = "msvc")))]
@@ -410,20 +470,20 @@ fn is_release_profile() -> bool {
 }
 
 #[cfg(all(target_env = "msvc", target_pointer_width = "32"))]
-fn get_lib_dir() -> PathBuf {
+fn get_lib_dir(install_dir: &Path) -> PathBuf {
     if is_release_profile() {
-        get_crate_dir().join("msvc/Win32/Release/v140/")
+        install_dir.join("libsodium/Win32/Release/v143/static/")
     } else {
-        get_crate_dir().join("msvc/Win32/Debug/v140/")
+        install_dir.join("libsodium/Win32/Debug/v143/static/")
     }
 }
 
 #[cfg(all(target_env = "msvc", target_pointer_width = "64"))]
-fn get_lib_dir() -> PathBuf {
+fn get_lib_dir(install_dir: &Path) -> PathBuf {
     if is_release_profile() {
-        get_crate_dir().join("msvc/x64/Release/v140/")
+        install_dir.join("libsodium/x64/Release/v143/static/")
     } else {
-        get_crate_dir().join("msvc/x64/Debug/v140/")
+        install_dir.join("libsodium/x64/Debug/v143/static/")
     }
 }
 
