@@ -132,64 +132,19 @@ fn find_libsodium_pkg() {
 
 #[cfg(all(windows, target_env = "msvc"))]
 fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
-    use minisign_verify::{PublicKey, Signature};
-    use std::fs::{self, File};
-    use std::io::prelude::*;
+    // We don't build anything on windows, we simply link to precompiled libs.
     use zip::read::ZipArchive;
 
+    // Determine filename for pre-built MSVC binaries
     let basename = "libsodium-1.0.18-stable-msvc";
     let filename = format!("{}.zip", basename);
     let signature_filename = format!("{}.zip.minisig", basename);
-    let pk =
-        PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
 
-    let mut archive_bin = vec![];
-
-    #[cfg(feature = "fetch-latest")]
-    {
-        let baseurl = "https://download.libsodium.org/libsodium/releases";
-        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
-        response
-            .unwrap()
-            .into_reader()
-            .read_to_end(&mut archive_bin)
-            .unwrap();
-        File::create(&filename)
-            .unwrap()
-            .write_all(&archive_bin)
-            .unwrap();
-
-        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
-        let mut signature_bin = vec![];
-        response
-            .unwrap()
-            .into_reader()
-            .read_to_end(&mut signature_bin)
-            .unwrap();
-        File::create(&signature_filename)
-            .unwrap()
-            .write_all(&signature_bin)
-            .unwrap();
-    }
-
-    #[cfg(not(feature = "fetch-latest"))]
-    {
-        File::open(&filename)
-            .unwrap()
-            .read_to_end(&mut archive_bin)
-            .unwrap();
-    }
-
-    let signature = Signature::from_file(&signature_filename).unwrap();
-
-    pk.verify(&archive_bin, &signature, false)
-        .expect("Invalid signature");
-
-    // Get binaries
-    let compressed_file = get_archive(&filename);
+    // Read binaries archive from disk (or download if requested) & verify signature
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Unpack the zip
-    let mut archive = ZipArchive::new(compressed_file).unwrap();
+    let mut archive = ZipArchive::new(std::io::Cursor::new(archive_bin)).unwrap();
     archive.extract(&install_dir).unwrap();
 
     get_lib_dir(install_dir)
@@ -197,65 +152,20 @@ fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
 
 #[cfg(all(windows, not(target_env = "msvc")))]
 fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
+    // We don't build anything on windows, we simply link to precompiled libs.
     use libflate::gzip::Decoder;
-    use minisign_verify::{PublicKey, Signature};
-    use std::fs::{self, File};
-    use std::io::prelude::*;
     use tar::Archive;
 
+    // Determine filename for pre-built MinGW binaries
     let basename = "libsodium-1.0.18-stable-mingw";
     let filename = format!("{}.tar.gz", basename);
     let signature_filename = format!("{}.tar.gz.minisig", basename);
-    let pk =
-        PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
 
-    let mut archive_bin = vec![];
-
-    #[cfg(feature = "fetch-latest")]
-    {
-        let baseurl = "https://download.libsodium.org/libsodium/releases";
-        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
-        response
-            .unwrap()
-            .into_reader()
-            .read_to_end(&mut archive_bin)
-            .unwrap();
-        File::create(&filename)
-            .unwrap()
-            .write_all(&archive_bin)
-            .unwrap();
-
-        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
-        let mut signature_bin = vec![];
-        response
-            .unwrap()
-            .into_reader()
-            .read_to_end(&mut signature_bin)
-            .unwrap();
-        File::create(&signature_filename)
-            .unwrap()
-            .write_all(&signature_bin)
-            .unwrap();
-    }
-
-    #[cfg(not(feature = "fetch-latest"))]
-    {
-        File::open(&filename)
-            .unwrap()
-            .read_to_end(&mut archive_bin)
-            .unwrap();
-    }
-
-    let signature = Signature::from_file(&signature_filename).unwrap();
-
-    pk.verify(&archive_bin, &signature, false)
-        .expect("Invalid signature");
-
-    // Get binaries
-    let compressed_file = get_archive(&filename);
+    // Read binaries archive from disk (or download if requested) & verify signature
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Unpack the tarball
-    let gz_decoder = Decoder::new(compressed_file).unwrap();
+    let gz_decoder = Decoder::new(std::io::Cursor::new(archive_bin)).unwrap();
     let mut archive = Archive::new(gz_decoder);
     archive.unpack(&install_dir).unwrap();
 
@@ -497,47 +407,15 @@ fn get_lib_dir(install_dir: &Path) -> PathBuf {
     install_dir.join("libsodium-win64/lib/")
 }
 
-fn get_archive(filename: &str) -> std::io::Cursor<Vec<u8>> {
-    use std::fs::File;
-    use std::io::{BufReader, Read};
-
-    let f = File::open(filename).unwrap_or_else(|_| panic!("Failed to open {}", filename));
-    let mut reader = BufReader::new(f);
-    let mut content = Vec::new();
-    reader
-        .read_to_end(&mut content)
-        .unwrap_or_else(|_| panic!("Failed to read {}", filename));
-
-    std::io::Cursor::new(content)
-}
-
 fn get_install_dir() -> PathBuf {
     PathBuf::from(env::var("OUT_DIR").unwrap()).join("installed")
 }
 
-fn build_libsodium() {
-    use libflate::gzip::Decoder;
+fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<u8> {
     use minisign_verify::{PublicKey, Signature};
-    use std::fs::{self, File};
+    use std::fs::File;
     use std::io::prelude::*;
-    use tar::Archive;
 
-    // Determine build target triple
-    let mut target = env::var("TARGET").unwrap();
-    // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
-    if target.starts_with("riscv") {
-        let mut split = target.split('-');
-        let arch = split.next().unwrap();
-        let bitness = &arch[5..7];
-        let rest = split.collect::<Vec<_>>().join("-");
-        target = format!("riscv{}-{}", bitness, rest);
-    }
-
-    // Determine filenames
-    let basedir = "libsodium-stable";
-    let basename = "LATEST";
-    let filename = format!("{}.tar.gz", basename);
-    let signature_filename = format!("{}.tar.gz.minisig", basename);
     let pk =
         PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
 
@@ -583,6 +461,34 @@ fn build_libsodium() {
     pk.verify(&archive_bin, &signature, false)
         .expect("Invalid signature");
 
+    archive_bin
+}
+
+fn build_libsodium() {
+    use libflate::gzip::Decoder;
+    use std::fs;
+    use tar::Archive;
+
+    // Determine build target triple
+    let mut target = env::var("TARGET").unwrap();
+    // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
+    if target.starts_with("riscv") {
+        let mut split = target.split('-');
+        let arch = split.next().unwrap();
+        let bitness = &arch[5..7];
+        let rest = split.collect::<Vec<_>>().join("-");
+        target = format!("riscv{}-{}", bitness, rest);
+    }
+
+    // Determine filenames
+    let basedir = "libsodium-stable";
+    let basename = "LATEST";
+    let filename = format!("{}.tar.gz", basename);
+    let signature_filename = format!("{}.tar.gz.minisig", basename);
+
+    // Read source archive from disk (or download if requested) & verify signature
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
+
     // Determine source and install dir
     let mut install_dir = get_install_dir();
     let mut source_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("source");
@@ -605,11 +511,8 @@ fn build_libsodium() {
     fs::create_dir_all(&install_dir).unwrap();
     fs::create_dir_all(&source_dir).unwrap();
 
-    // Get sources
-    let compressed_file = get_archive(&filename);
-
     // Unpack the tarball
-    let gz_decoder = Decoder::new(compressed_file).unwrap();
+    let gz_decoder = Decoder::new(std::io::Cursor::new(archive_bin)).unwrap();
     let mut archive = Archive::new(gz_decoder);
     archive.unpack(&source_dir).unwrap();
     source_dir.push(basedir);
