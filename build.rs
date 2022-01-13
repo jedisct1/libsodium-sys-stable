@@ -128,11 +128,78 @@ fn find_libsodium_pkg() {
     }
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, target_env = "msvc"))]
 fn make_libsodium(_: &str, _: &Path, _: &Path) -> PathBuf {
     // We don't build anything on windows, we simply linked to precompiled
     // libs.
     get_lib_dir()
+}
+
+#[cfg(all(windows, not(target_env = "msvc")))]
+fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
+    use libflate::gzip::Decoder;
+    use minisign_verify::{PublicKey, Signature};
+    use std::fs::{self, File};
+    use std::io::prelude::*;
+    use tar::Archive;
+
+    let basename = "libsodium-1.0.18-stable-mingw";
+    let filename = format!("{}.tar.gz", basename);
+    let signature_filename = format!("{}.tar.gz.minisig", basename);
+    let pk =
+        PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
+
+    let mut archive_bin = vec![];
+
+    #[cfg(feature = "fetch-latest")]
+    {
+        let baseurl = "https://download.libsodium.org/libsodium/releases";
+        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
+        response
+            .unwrap()
+            .into_reader()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+        File::create(&filename)
+            .unwrap()
+            .write_all(&archive_bin)
+            .unwrap();
+
+        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
+        let mut signature_bin = vec![];
+        response
+            .unwrap()
+            .into_reader()
+            .read_to_end(&mut signature_bin)
+            .unwrap();
+        File::create(&signature_filename)
+            .unwrap()
+            .write_all(&signature_bin)
+            .unwrap();
+    }
+
+    #[cfg(not(feature = "fetch-latest"))]
+    {
+        File::open(&filename)
+            .unwrap()
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+    }
+
+    let signature = Signature::from_file(&signature_filename).unwrap();
+
+    pk.verify(&archive_bin, &signature, false)
+        .expect("Invalid signature");
+
+    // Get binaries
+    let compressed_file = get_archive(&filename);
+
+    // Unpack the tarball
+    let gz_decoder = Decoder::new(compressed_file).unwrap();
+    let mut archive = Archive::new(gz_decoder);
+    archive.unpack(&install_dir).unwrap();
+
+    get_lib_dir(install_dir)
 }
 
 #[cfg(not(windows))]
@@ -361,13 +428,13 @@ fn get_lib_dir() -> PathBuf {
 }
 
 #[cfg(all(windows, not(target_env = "msvc"), target_pointer_width = "32"))]
-fn get_lib_dir() -> PathBuf {
-    get_crate_dir().join("mingw/win32/")
+fn get_lib_dir(install_dir: &Path) -> PathBuf {
+    install_dir.join("libsodium-win32/lib/")
 }
 
 #[cfg(all(windows, not(target_env = "msvc"), target_pointer_width = "64"))]
-fn get_lib_dir() -> PathBuf {
-    get_crate_dir().join("mingw/win64/")
+fn get_lib_dir(install_dir: &Path) -> PathBuf {
+    install_dir.join("libsodium-win64/lib/")
 }
 
 fn get_archive(filename: &str) -> std::io::Cursor<Vec<u8>> {
