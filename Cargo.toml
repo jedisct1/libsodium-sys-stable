@@ -19,8 +19,9 @@ ureq = { version = "2.2", optional = true, default-features = false, features = 
 minisign-verify = "0.2"
 
 [target.'cfg(target_env = "msvc")'.build-dependencies]
-libc = { version = "0.2" , default-features = false }
+libc = { version = "0.2", default-features = false }
 vcpkg = "0.2"
+zip = { version = "0.5", default-features = false, features = ["deflate"] }
 
 [target.'cfg(not(target_env = "msvc"))'.build-dependencies]
 cc = "1.0"
