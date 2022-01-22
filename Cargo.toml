@@ -1,7 +1,7 @@
 [package]
 authors = ["dnaq", "jedisct1"]
 build = "build.rs"
-description = "FFI bindings for libsodium stable"
+description = "Maintained FFI bindings for libsodium stable"
 documentation = "https://docs.rs/libsodium-sys-stable"
 keywords = ["libsodium", "NaCl", "crypto", "cryptography"]
 license = "MIT OR Apache-2.0"
