@@ -264,9 +264,6 @@ pub const crypto_stream_salsa2012_KEYBYTES: u32 = 32;
 pub const crypto_stream_salsa2012_NONCEBYTES: u32 = 8;
 pub const crypto_stream_salsa208_KEYBYTES: u32 = 32;
 pub const crypto_stream_salsa208_NONCEBYTES: u32 = 8;
-pub type __uint8_t = libc::c_uchar;
-pub type __uint32_t = libc::c_uint;
-pub type __uint64_t = libc::c_ulong;
 extern "C" {
     pub fn sodium_version_string() -> *const libc::c_char;
 }
