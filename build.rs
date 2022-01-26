@@ -12,7 +12,7 @@ extern crate libflate;
 extern crate minisign_verify;
 extern crate pkg_config;
 extern crate tar;
-#[cfg(feature = "fetch-latest")]
+#[cfg(any(windows, feature = "fetch-latest"))]
 extern crate ureq;
 
 use std::{
@@ -421,7 +421,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     let mut archive_bin = vec![];
 
-    #[cfg(feature = "fetch-latest")]
+    #[cfg(any(windows, feature = "fetch-latest"))]
     {
         let baseurl = "https://download.libsodium.org/libsodium/releases";
         let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
@@ -448,7 +448,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .unwrap();
     }
 
-    #[cfg(not(feature = "fetch-latest"))]
+    #[cfg(not(any(windows, feature = "fetch-latest")))]
     {
         File::open(&filename)
             .unwrap()
