@@ -223,7 +223,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         let ios_version_min = "6.0.0";
 
         // Roughly based on `dist-build/ios.sh` in the libsodium sources
-        match &*target {
+        match target {
             "aarch64-apple-ios" => {
                 cflags += " -arch arm64";
                 cflags += &format!(" -isysroot {}", sdk_dir_ios);
@@ -299,7 +299,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     #[cfg(feature = "minimal")]
     configure_cmd.arg("--enable-minimal");
     let configure_output = configure_cmd
-        .current_dir(&source_dir)
+        .current_dir(source_dir)
         .arg(&prefix_arg)
         .arg(&host_arg)
         .args(configure_extra)
@@ -327,7 +327,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     let make_arg = if cross_compiling { "all" } else { "check" };
     let mut make_cmd = Command::new("make");
     let make_output = make_cmd
-        .current_dir(&source_dir)
+        .current_dir(source_dir)
         .env("V", "1")
         .arg(make_arg)
         .arg(&j_arg)
@@ -349,7 +349,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     // Run `make install`
     let mut install_cmd = Command::new("make");
     let install_output = install_cmd
-        .current_dir(&source_dir)
+        .current_dir(source_dir)
         .arg("install")
         .output()
         .unwrap_or_else(|error| {
@@ -450,13 +450,13 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     #[cfg(not(any(windows, feature = "fetch-latest")))]
     {
-        File::open(&filename)
+        File::open(filename)
             .unwrap()
             .read_to_end(&mut archive_bin)
             .unwrap();
     }
 
-    let signature = Signature::from_file(&signature_filename).unwrap();
+    let signature = Signature::from_file(signature_filename).unwrap();
 
     pk.verify(&archive_bin, &signature, false)
         .expect("Invalid signature");
@@ -496,7 +496,7 @@ fn build_libsodium() {
     // Avoid issues with paths containing spaces by falling back to using a tempfile.
     // See https://github.com/jedisct1/libsodium/issues/207
     if install_dir.to_str().unwrap().contains(' ') {
-        let fallback_path = PathBuf::from("/tmp/").join(&basename).join(&target);
+        let fallback_path = PathBuf::from("/tmp/").join(basename).join(&target);
         install_dir = fallback_path.join("installed");
         source_dir = fallback_path.join("/source");
         println!(
