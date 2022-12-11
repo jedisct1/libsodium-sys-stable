@@ -74,7 +74,7 @@ This function will set `cargo` flags.
 fn find_libsodium_env() {
     let lib_dir = env::var("SODIUM_LIB_DIR").unwrap(); // cannot fail
 
-    println!("cargo:rustc-link-search=native={}", lib_dir);
+    println!("cargo:rustc-link-search=native={lib_dir}");
     let mode = if env::var("SODIUM_SHARED").is_ok() {
         "dylib"
     } else {
@@ -85,7 +85,7 @@ fn find_libsodium_env() {
     } else {
         "sodium"
     };
-    println!("cargo:rustc-link-lib={}={}", mode, name);
+    println!("cargo:rustc-link-lib={mode}={name}");
     println!("cargo:warning=Using unknown libsodium version.");
 }
 
@@ -226,35 +226,35 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         match target {
             "aarch64-apple-ios" => {
                 cflags += " -arch arm64";
-                cflags += &format!(" -isysroot {}", sdk_dir_ios);
-                cflags += &format!(" -mios-version-min={}", ios_version_min);
+                cflags += &format!(" -isysroot {sdk_dir_ios}");
+                cflags += &format!(" -mios-version-min={ios_version_min}");
                 cflags += " -fembed-bitcode";
                 host_arg = "--host=arm-apple-darwin10".to_string();
             }
             "armv7-apple-ios" => {
                 cflags += " -arch armv7";
-                cflags += &format!(" -isysroot {}", sdk_dir_ios);
-                cflags += &format!(" -mios-version-min={}", ios_version_min);
+                cflags += &format!(" -isysroot {sdk_dir_ios}");
+                cflags += &format!(" -mios-version-min={ios_version_min}");
                 cflags += " -mthumb";
                 host_arg = "--host=arm-apple-darwin10".to_string();
             }
             "armv7s-apple-ios" => {
                 cflags += " -arch armv7s";
-                cflags += &format!(" -isysroot {}", sdk_dir_ios);
-                cflags += &format!(" -mios-version-min={}", ios_version_min);
+                cflags += &format!(" -isysroot {sdk_dir_ios}");
+                cflags += &format!(" -mios-version-min={ios_version_min}");
                 cflags += " -mthumb";
                 host_arg = "--host=arm-apple-darwin10".to_string();
             }
             "i386-apple-ios" => {
                 cflags += " -arch i386";
-                cflags += &format!(" -isysroot {}", sdk_dir_simulator);
-                cflags += &format!(" -mios-simulator-version-min={}", ios_simulator_version_min);
+                cflags += &format!(" -isysroot {sdk_dir_simulator}");
+                cflags += &format!(" -mios-simulator-version-min={ios_simulator_version_min}");
                 host_arg = "--host=i686-apple-darwin10".to_string();
             }
             "x86_64-apple-ios" => {
                 cflags += " -arch x86_64";
-                cflags += &format!(" -isysroot {}", sdk_dir_simulator);
-                cflags += &format!(" -mios-simulator-version-min={}", ios_simulator_version_min);
+                cflags += &format!(" -isysroot {sdk_dir_simulator}");
+                cflags += &format!(" -mios-simulator-version-min={ios_simulator_version_min}");
                 host_arg = "--host=x86_64-apple-darwin10".to_string();
             }
             _ => panic!("Unknown iOS build target: {}", target),
@@ -267,7 +267,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
             cflags += " -march=i686";
         }
         let host = env::var("HOST").unwrap();
-        host_arg = format!("--host={}", target);
+        host_arg = format!("--host={target}");
         cross_compiling = target != host;
         help = if cross_compiling {
             "***********************************************************\n\
@@ -477,14 +477,14 @@ fn build_libsodium() {
         let arch = split.next().unwrap();
         let bitness = &arch[5..7];
         let rest = split.collect::<Vec<_>>().join("-");
-        target = format!("riscv{}-{}", bitness, rest);
+        target = format!("riscv{bitness}-{rest}");
     }
 
     // Determine filenames
     let basedir = "libsodium-stable";
     let basename = "LATEST";
-    let filename = format!("{}.tar.gz", basename);
-    let signature_filename = format!("{}.tar.gz.minisig", basename);
+    let filename = format!("{basename}.tar.gz");
+    let signature_filename = format!("{basename}.tar.gz.minisig");
 
     // Read source archive from disk (or download if requested) & verify signature
     let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
