@@ -136,7 +136,7 @@ fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
     use zip::read::ZipArchive;
 
     // Determine filename for pre-built MSVC binaries
-    let basename = "libsodium-1.0.18-stable-msvc";
+    let basename = "libsodium-1.0.19-stable-msvc";
     let filename = format!("{}.zip", basename);
     let signature_filename = format!("{}.zip.minisig", basename);
 
@@ -157,7 +157,7 @@ fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
     use tar::Archive;
 
     // Determine filename for pre-built MinGW binaries
-    let basename = "libsodium-1.0.18-stable-mingw";
+    let basename = "libsodium-1.0.19-stable-mingw";
     let filename = format!("{}.tar.gz", basename);
     let signature_filename = format!("{}.tar.gz.minisig", basename);
 
