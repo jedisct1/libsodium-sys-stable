@@ -271,9 +271,9 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         cross_compiling = target != host;
         help = if cross_compiling {
             "***********************************************************\n\
-             Possible missing dependencies.\n\
-             See https://github.com/sodiumoxide/sodiumoxide#cross-compiling\n\
-             ***********************************************************\n\n"
+             Use the 'cargo zigbuild' command to cross-compile Rust code\n\
+             with C dependencies such as libsodium.\n\
+             ***********************************************************\n"
         } else {
             ""
         };
