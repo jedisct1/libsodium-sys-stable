@@ -222,7 +222,6 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         let ios_simulator_version_min = "6.0.0";
         let ios_version_min = "6.0.0";
 
-        // Roughly based on `dist-build/ios.sh` in the libsodium sources
         match target {
             "aarch64-apple-ios" => {
                 cflags += " -arch arm64";
