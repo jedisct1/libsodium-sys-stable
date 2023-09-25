@@ -1,4 +1,4 @@
-name: ios
+name: cross
 
 on:
     push:
