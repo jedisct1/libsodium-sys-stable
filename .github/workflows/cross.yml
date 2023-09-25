@@ -1,0 +1,23 @@
+name: ios
+
+on:
+    push:
+        branches:
+        - master
+        - stable
+        - next
+    pull_request:
+        branches:
+        - master
+        - stable
+        - next
+
+jobs:
+    ios-simulator:
+        runs-on: macos-latest
+        steps:   
+        - uses: actions/checkout@v3
+        - name: compile
+          run: |
+                rustup target add aarch64-apple-ios-sim
+                cargo build --target aarch64-apple-ios-sim
