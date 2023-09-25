@@ -1,0 +1,26 @@
+name: native builds
+on: push
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: x86_64-pc-windows-gnu
+            os: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Cargo Version
+        run: cargo version
+
+      - name: Cargo Test
+        run: cargo test --target ${{ matrix.target }}
