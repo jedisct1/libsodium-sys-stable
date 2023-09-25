@@ -29,20 +29,3 @@ jobs:
         - name: cross-compile
           run: |
                 cargo build --target x86_64-pc-windows-gnu
-
-    aarch64-macos:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions/checkout@v3
-        - uses: goto-bus-stop/setup-zig@v2
-
-        - name: Install cargo-zigbuild
-          run: cargo install cargo-zigbuild
-
-        - name: Install Rust targets
-          run: |
-                rustup target add aarch64-apple-darwin
-
-        - name: cross-compile
-          run: |
-                cargo build --target aarch64-apple-darwin
