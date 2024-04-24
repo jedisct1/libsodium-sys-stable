@@ -1,4 +1,5 @@
 [package]
+edition = "2021"
 authors = ["dnaq", "jedisct1"]
 build = "build.rs"
 description = "Maintained FFI bindings for libsodium stable"
@@ -15,19 +16,16 @@ version = "1.20.5"
 pkg-config = "0.3"
 tar = "0.4"
 libflate = "2.0"
-ureq = { version = "2.9", optional = true, default-features = false, features = ["tls"] }
+native-tls = "0.2"
+ureq = { version = "2.9", default-features = false, features = ["native-tls"] }
 minisign-verify = "0.2"
 
 [target.'cfg(target_env = "msvc")'.build-dependencies]
-libc = { version = "0.2", default-features = false }
 vcpkg = "0.2"
-zip = { version = "0.6", default-features = false, features = ["deflate"] }
+zip = { version = "1.1", default-features = false, features = ["deflate"] }
 
 [target.'cfg(not(target_env = "msvc"))'.build-dependencies]
 cc = "1.0"
-
-[target.'cfg(windows)'.build-dependencies]
-ureq = { version = "2.9", optional = false, default-features = false, features = ["tls"] }
 
 [dependencies]
 libc = { version = "0.2" , default-features = false }
@@ -38,6 +36,6 @@ name = "libsodium_sys"
 [features]
 default = []
 use-pkg-config = []
-fetch-latest = ["ureq"]
+fetch-latest = []
 optimized = []
 minimal = []

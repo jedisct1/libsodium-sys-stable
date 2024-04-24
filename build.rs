@@ -1,20 +1,3 @@
-#[cfg(not(windows))]
-extern crate cc;
-
-#[cfg(target_env = "msvc")]
-extern crate libc;
-#[cfg(target_env = "msvc")]
-extern crate vcpkg;
-#[cfg(target_env = "msvc")]
-extern crate zip;
-
-extern crate libflate;
-extern crate minisign_verify;
-extern crate pkg_config;
-extern crate tar;
-#[cfg(any(windows, feature = "fetch-latest"))]
-extern crate ureq;
-
 use std::{
     env,
     path::{Path, PathBuf},
@@ -411,18 +394,41 @@ fn get_install_dir() -> PathBuf {
 
 fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<u8> {
     use minisign_verify::{PublicKey, Signature};
-    use std::fs::File;
+    use std::fs::{self, File};
     use std::io::prelude::*;
 
     let pk =
         PublicKey::from_base64("RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3").unwrap();
+
+    if let Ok(dist_dir) = env::var("SODIUM_DIST_DIR") {
+        let _ = fs::metadata(&dist_dir).expect("SODIUM_DIST_DIR directory does not exist");
+        let archive_path = PathBuf::from(&dist_dir).join(filename);
+        let signature_path = PathBuf::from(&dist_dir).join(signature_filename);
+        let mut archive_bin = vec![];
+        File::open(&archive_path)
+            .unwrap_or_else(|_| panic!("Failed to open archive [{:?}]", &archive_path))
+            .read_to_end(&mut archive_bin)
+            .unwrap();
+        let signature =
+            Signature::from_file(&signature_path).unwrap_or_else(|_| panic!("Failed to open signature file [{:?}]", &signature_path));
+        pk.verify(&archive_bin, &signature, false)
+            .expect("Invalid signature");
+        return archive_bin;
+    }
 
     let mut archive_bin = vec![];
 
     #[cfg(any(windows, feature = "fetch-latest"))]
     {
         let baseurl = "https://download.libsodium.org/libsodium/releases";
-        let response = ureq::get(&format!("{}/{}", baseurl, filename)).call();
+        let agent = ureq::AgentBuilder::new()
+            .try_proxy_from_env(true)
+            .timeout(std::time::Duration::from_secs(300))
+            .tls_connector(std::sync::Arc::new(
+                native_tls::TlsConnector::new().unwrap(),
+            ))
+            .build();
+        let response = agent.get(&format!("{}/{}", baseurl, filename)).call();
         response
             .unwrap()
             .into_reader()
@@ -433,7 +439,9 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .write_all(&archive_bin)
             .unwrap();
 
-        let response = ureq::get(&format!("{}/{}", baseurl, signature_filename)).call();
+        let response = agent
+            .get(&format!("{}/{}", baseurl, signature_filename))
+            .call();
         let mut signature_bin = vec![];
         response
             .unwrap()
@@ -496,7 +504,7 @@ fn build_libsodium() {
     if install_dir.to_str().unwrap().contains(' ') {
         let fallback_path = PathBuf::from("/tmp/").join(basename).join(&target);
         install_dir = fallback_path.join("installed");
-        source_dir = fallback_path.join("/source");
+        source_dir = fallback_path.join("source");
         println!(
             "cargo:warning=The path to the usual build directory contains spaces and hence \
              can't be used to build libsodium.  Falling back to use {}.  If running `cargo \
