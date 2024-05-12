@@ -409,8 +409,8 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .unwrap_or_else(|_| panic!("Failed to open archive [{:?}]", &archive_path))
             .read_to_end(&mut archive_bin)
             .unwrap();
-        let signature =
-            Signature::from_file(&signature_path).unwrap_or_else(|_| panic!("Failed to open signature file [{:?}]", &signature_path));
+        let signature = Signature::from_file(&signature_path)
+            .unwrap_or_else(|_| panic!("Failed to open signature file [{:?}]", &signature_path));
         pk.verify(&archive_bin, &signature, false)
             .expect("Invalid signature");
         return archive_bin;
@@ -420,13 +420,10 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     #[cfg(any(windows, feature = "fetch-latest"))]
     {
-        let baseurl = "https://download.libsodium.org/libsodium/releases";
+        let baseurl = "http://download.libsodium.org/libsodium/releases";
         let agent = ureq::AgentBuilder::new()
             .try_proxy_from_env(true)
             .timeout(std::time::Duration::from_secs(300))
-            .tls_connector(std::sync::Arc::new(
-                native_tls::TlsConnector::new().unwrap(),
-            ))
             .build();
         let response = agent.get(&format!("{}/{}", baseurl, filename)).call();
         response
