@@ -10,7 +10,7 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.20.10"
+version = "1.21.1"
 
 [build-dependencies]
 pkg-config = "0.3"
