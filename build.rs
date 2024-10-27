@@ -91,7 +91,7 @@ fn extract_libsodium_precompiled_msvc(_: &str, _: &Path, install_dir: &Path) -> 
     let signature_filename = format!("{}.zip.minisig", basename);
 
     // Read binaries archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
 
     // Unpack the zip
     let mut archive = ZipArchive::new(std::io::Cursor::new(archive_bin)).unwrap();
@@ -115,7 +115,7 @@ fn extract_libsodium_precompiled_mingw(_: &str, _: &Path, install_dir: &Path) ->
     let signature_filename = format!("{}.tar.gz.minisig", basename);
 
     // Read binaries archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
 
     // Unpack the tarball
     let gz_decoder = Decoder::new(std::io::Cursor::new(archive_bin)).unwrap();
@@ -371,7 +371,11 @@ fn get_cargo_install_dir() -> PathBuf {
 }
 
 // Retrieve an archive from the internet, verify its signature, and return its contents
-fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<u8> {
+fn retrieve_and_verify_archive(
+    filename: &str,
+    signature_filename: &str,
+    mut retrieve: bool,
+) -> Vec<u8> {
     use minisign_verify::{PublicKey, Signature};
     use std::fs::{self, File};
     use std::io::prelude::*;
@@ -399,6 +403,16 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     #[cfg(feature = "fetch-latest")]
     {
+        focre_retrive = true
+    }
+
+    if !retrieve {
+        let res = File::open(filename).unwrap().read_to_end(&mut archive_bin);
+        if res.is_ok() {
+            retrieve = false;
+        }
+    }
+    if retrieve {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
         let agent = ureq::AgentBuilder::new()
             .try_proxy_from_env(true)
@@ -410,7 +424,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .into_reader()
             .read_to_end(&mut archive_bin)
             .unwrap();
-        File::create(&filename)
+        File::create(filename)
             .unwrap()
             .write_all(&archive_bin)
             .unwrap();
@@ -424,17 +438,9 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .into_reader()
             .read_to_end(&mut signature_bin)
             .unwrap();
-        File::create(&signature_filename)
+        File::create(signature_filename)
             .unwrap()
             .write_all(&signature_bin)
-            .unwrap();
-    }
-
-    #[cfg(not(feature = "fetch-latest"))]
-    {
-        File::open(filename)
-            .unwrap()
-            .read_to_end(&mut archive_bin)
             .unwrap();
     }
 
@@ -473,7 +479,7 @@ fn install_from_source() -> Result<(), String> {
     let signature_filename = format!("{basename}.tar.gz.minisig");
 
     // Read source archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
 
     // Determine source and install dir
     let mut install_dir = get_cargo_install_dir();
@@ -526,6 +532,8 @@ fn install_from_source() -> Result<(), String> {
 }
 
 fn main() {
+    dbg!("Compiling for target:", Target::get().name);
+
     println!("cargo:rerun-if-env-changed=SODIUM_LIB_DIR");
     println!("cargo:rerun-if-env-changed=SODIUM_SHARED");
     println!("cargo:rerun-if-env-changed=SODIUM_USE_PKG_CONFIG");
