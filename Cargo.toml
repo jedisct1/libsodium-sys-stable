@@ -10,7 +10,7 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.21.4"
+version = "1.22.0"
 
 [build-dependencies]
 pkg-config = "0.3"
@@ -18,8 +18,6 @@ tar = "0.4"
 libflate = "2.1"
 ureq = { version = "2.10", default-features = false }
 minisign-verify = "0.2"
-
-[target.'cfg(target_env = "msvc")'.build-dependencies]
 vcpkg = "0.2"
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
 
