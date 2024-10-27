@@ -91,7 +91,7 @@ fn extract_libsodium_precompiled_msvc(_: &str, _: &Path, install_dir: &Path) -> 
     let signature_filename = format!("{}.zip.minisig", basename);
 
     // Read binaries archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Unpack the zip
     let mut archive = ZipArchive::new(std::io::Cursor::new(archive_bin)).unwrap();
@@ -115,7 +115,7 @@ fn extract_libsodium_precompiled_mingw(_: &str, _: &Path, install_dir: &Path) ->
     let signature_filename = format!("{}.tar.gz.minisig", basename);
 
     // Read binaries archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Unpack the tarball
     let gz_decoder = Decoder::new(std::io::Cursor::new(archive_bin)).unwrap();
@@ -371,11 +371,7 @@ fn get_cargo_install_dir() -> PathBuf {
 }
 
 // Retrieve an archive from the internet, verify its signature, and return its contents
-fn retrieve_and_verify_archive(
-    filename: &str,
-    signature_filename: &str,
-    mut retrieve: bool,
-) -> Vec<u8> {
+fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<u8> {
     use minisign_verify::{PublicKey, Signature};
     use std::fs::{self, File};
     use std::io::prelude::*;
@@ -406,13 +402,12 @@ fn retrieve_and_verify_archive(
         focre_retrive = true
     }
 
-    if !retrieve {
-        let res = File::open(filename).unwrap().read_to_end(&mut archive_bin);
-        if res.is_ok() {
-            retrieve = false;
-        }
+    let mut download = true;
+    let res = File::open(filename).unwrap().read_to_end(&mut archive_bin);
+    if res.is_ok() {
+        download = false
     }
-    if retrieve {
+    if download {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
         let agent = ureq::AgentBuilder::new()
             .try_proxy_from_env(true)
@@ -479,7 +474,7 @@ fn install_from_source() -> Result<(), String> {
     let signature_filename = format!("{basename}.tar.gz.minisig");
 
     // Read source archive from disk (or download if requested) & verify signature
-    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename, true);
+    let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Determine source and install dir
     let mut install_dir = get_cargo_install_dir();
