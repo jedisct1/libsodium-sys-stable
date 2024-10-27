@@ -397,15 +397,14 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     let mut archive_bin = vec![];
 
-    #[cfg(feature = "fetch-latest")]
-    {
-        focre_retrive = true
-    }
-
     let mut download = true;
-    let res = File::open(filename).unwrap().read_to_end(&mut archive_bin);
-    if res.is_ok() {
-        download = false
+    #[cfg(not(feature = "fetch-latest"))]
+    {
+        if let Ok(mut file) = File::open(filename) {
+            if file.read_to_end(&mut archive_bin).is_ok() {
+                download = false;
+            }
+        }
     }
     if download {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
@@ -438,9 +437,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .write_all(&signature_bin)
             .unwrap();
     }
-
     let signature = Signature::from_file(signature_filename).unwrap();
-
     pk.verify(&archive_bin, &signature, false)
         .expect("Invalid signature");
 
