@@ -3,57 +3,31 @@ use std::{
     path::{Path, PathBuf},
 };
 
-fn main() {
-    println!("cargo:rerun-if-env-changed=SODIUM_LIB_DIR");
-    println!("cargo:rerun-if-env-changed=SODIUM_SHARED");
-    println!("cargo:rerun-if-env-changed=SODIUM_USE_PKG_CONFIG");
+struct Target {
+    name: String,
+    is_release: bool,
+}
 
-    if cfg!(target_env = "msvc") {
-        // vcpkg requires to set env VCPKGRS_DYNAMIC
-        println!("cargo:rerun-if-env-changed=VCPKGRS_DYNAMIC");
-    }
-    if cfg!(not(windows)) {
-        println!("cargo:rerun-if-env-changed=SODIUM_DISABLE_PIE");
-    }
-
-    if env::var("SODIUM_STATIC").is_ok() {
-        panic!("SODIUM_STATIC is deprecated. Use SODIUM_SHARED instead.");
-    }
-
-    let lib_dir_isset = env::var("SODIUM_LIB_DIR").is_ok();
-    let use_pkg_isset = if cfg!(feature = "use-pkg-config") {
-        true
-    } else {
-        env::var("SODIUM_USE_PKG_CONFIG").is_ok()
-    };
-    let shared_isset = env::var("SODIUM_SHARED").is_ok();
-
-    if lib_dir_isset && use_pkg_isset {
-        panic!("SODIUM_LIB_DIR is incompatible with SODIUM_USE_PKG_CONFIG. Set the only one env variable");
-    }
-
-    if lib_dir_isset {
-        find_libsodium_env();
-    } else if use_pkg_isset {
-        if shared_isset {
-            println!("cargo:warning=SODIUM_SHARED has no effect with SODIUM_USE_PKG_CONFIG");
+impl Target {
+    fn get() -> Self {
+        let mut target = env::var("TARGET").unwrap();
+        // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
+        if target.starts_with("riscv") {
+            let mut split = target.split('-');
+            let arch = split.next().unwrap();
+            let bitness = &arch[5..7];
+            let rest = split.collect::<Vec<_>>().join("-");
+            target = format!("riscv{bitness}-{rest}");
         }
 
-        find_libsodium_pkg();
-    } else {
-        if shared_isset {
-            println!(
-                "cargo:warning=SODIUM_SHARED has no effect for building libsodium from source"
-            );
+        Self {
+            name: target,
+            is_release: env::var("PROFILE").unwrap() == "release",
         }
-
-        build_libsodium();
     }
 }
 
-/* Must be called when SODIUM_LIB_DIR is set to any value
-This function will set `cargo` flags.
-*/
+// When SODIUM_LIB_DIR has been set, add the directory to the Rust compiler search path
 fn find_libsodium_env() {
     let lib_dir = env::var("SODIUM_LIB_DIR").unwrap(); // cannot fail
 
@@ -72,11 +46,9 @@ fn find_libsodium_env() {
     println!("cargo:warning=Using unknown libsodium version.");
 }
 
-/* Must be called when no SODIUM_USE_PKG_CONFIG env var is set
-This function will set `cargo` flags.
-*/
-#[cfg(target_env = "msvc")]
-fn find_libsodium_pkg() {
+// Try to find a system install of libsodium using vcpkg; return false if not found.
+// Otherwise, adjust compiler flags and return true.
+fn find_libsodium_vpkg() -> bool {
     match vcpkg::probe_package("libsodium") {
         Ok(lib) => {
             println!("cargo:warning=Using unknown libsodium version");
@@ -86,18 +58,15 @@ fn find_libsodium_pkg() {
             for include_dir in &lib.include_paths {
                 println!("cargo:include={}", include_dir.to_str().unwrap());
             }
+            true
         }
-        Err(e) => {
-            panic!("Error: {:?}", e);
-        }
-    };
+        Err(_) => false,
+    }
 }
 
-/* Must be called when SODIUM_USE_PKG_CONFIG env var is set
-This function will set `cargo` flags.
-*/
-#[cfg(not(target_env = "msvc"))]
-fn find_libsodium_pkg() {
+// Try to find a system install of libsodium using pkg-config; return false if not found.
+// Otherwise, adjust compiler flags and return true.
+fn find_libsodium_pkgconfig() -> bool {
     match pkg_config::Config::new().probe("libsodium") {
         Ok(lib) => {
             for lib_dir in &lib.link_paths {
@@ -106,20 +75,18 @@ fn find_libsodium_pkg() {
             for include_dir in &lib.include_paths {
                 println!("cargo:include={}", include_dir.to_str().unwrap());
             }
+            true
         }
-        Err(e) => {
-            panic!("Error: {:?}", e);
-        }
+        Err(_) => false,
     }
 }
 
-#[cfg(all(windows, target_env = "msvc"))]
-fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
-    // We don't build anything on windows, we simply link to precompiled libs.
+// Extract precompiled MSVC binaries from a zip archive
+fn extract_libsodium_precompiled_msvc(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
     use zip::read::ZipArchive;
 
     // Determine filename for pre-built MSVC binaries
-    let basename = "libsodium-1.0.19-stable-msvc";
+    let basename = "libsodium-1.0.20-stable-msvc";
     let filename = format!("{}.zip", basename);
     let signature_filename = format!("{}.zip.minisig", basename);
 
@@ -128,19 +95,22 @@ fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
 
     // Unpack the zip
     let mut archive = ZipArchive::new(std::io::Cursor::new(archive_bin)).unwrap();
-    archive.extract(&install_dir).unwrap();
+    archive.extract(install_dir).unwrap();
 
-    get_lib_dir(install_dir)
+    match Target::get().name.as_str() {
+        "i686-pc-windows-msvc" => get_precompiled_lib_dir_msvc_win32(install_dir),
+        "x86_64-pc-windows-msvc" => get_precompiled_lib_dir_msvc_x64(install_dir),
+        _ => panic!("Unsupported target"),
+    }
 }
 
-#[cfg(all(windows, not(target_env = "msvc")))]
-fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
-    // We don't build anything on windows, we simply link to precompiled libs.
+// Extract precompiled MinGW binaries from a tarball
+fn extract_libsodium_precompiled_mingw(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
     use libflate::gzip::Decoder;
     use tar::Archive;
 
     // Determine filename for pre-built MinGW binaries
-    let basename = "libsodium-1.0.19-stable-mingw";
+    let basename = "libsodium-1.0.20-stable-mingw";
     let filename = format!("{}.tar.gz", basename);
     let signature_filename = format!("{}.tar.gz.minisig", basename);
 
@@ -150,13 +120,78 @@ fn make_libsodium(_: &str, _: &Path, install_dir: &Path) -> PathBuf {
     // Unpack the tarball
     let gz_decoder = Decoder::new(std::io::Cursor::new(archive_bin)).unwrap();
     let mut archive = Archive::new(gz_decoder);
-    archive.unpack(&install_dir).unwrap();
+    archive.unpack(install_dir).unwrap();
 
-    get_lib_dir(install_dir)
+    match Target::get().name.as_str() {
+        "i686-pc-windows-gnu" => install_dir.join("libsodium/i686-w64-mingw32/lib"),
+        "x86_64-pc-windows-gnu" => install_dir.join("libsodium/x86_64-w64-mingw32/lib"),
+        _ => panic!("Unsupported target"),
+    }
 }
 
-#[cfg(not(windows))]
-fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBuf {
+// Get the directory containing precompiled MSVC binaries for Win32
+fn get_precompiled_lib_dir_msvc_win32(install_dir: &Path) -> PathBuf {
+    if Target::get().is_release {
+        install_dir.join("libsodium/Win32/Release/v143/static/")
+    } else {
+        install_dir.join("libsodium/Win32/Debug/v143/static/")
+    }
+}
+
+// Get the directory containing precompiled MSVC binaries for x64
+fn get_precompiled_lib_dir_msvc_x64(install_dir: &Path) -> PathBuf {
+    if Target::get().is_release {
+        install_dir.join("libsodium/x64/Release/v143/static/")
+    } else {
+        install_dir.join("libsodium/x64/Debug/v143/static/")
+    }
+}
+
+fn compile_libsodium_zig(target: &str, source_dir: &Path) -> Result<PathBuf, String> {
+    use std::process::Command;
+
+    let host = env::var("HOST").unwrap();
+    let cross_compiling = target != host;
+    let target = Target::get().name;
+    if cross_compiling && target != "wasm32-wasi" {
+        return Err(
+            "Cross-compiling with Zig is not implemented in this Rust file yet (except for WebAssembly)".to_string(),
+        );
+    }
+
+    let mut install_cmd = Command::new("zig");
+    let mut install_output = install_cmd.current_dir(source_dir).arg("build");
+    if target.as_str() == "wasm32-wasi" {
+        install_output = install_output.arg("--target").arg("wasm32-wasi");
+    };
+    if Target::get().is_release {
+        install_output = install_output.arg("-Doptimize=ReleaseFast");
+    }
+    let install_output = install_output.output();
+    let install_output = match install_output {
+        Ok(output) => output,
+        Err(error) => {
+            return Err(format!("Failed to run 'zig build': {}\n", error));
+        }
+    };
+    if !install_output.status.success() {
+        return Err(format!(
+            "\n{:?}\n{}\n{}\n",
+            install_cmd,
+            String::from_utf8_lossy(&install_output.stdout),
+            String::from_utf8_lossy(&install_output.stderr)
+        ));
+    }
+    let install_path = source_dir.join("zig-out/lib");
+    Ok(install_path)
+}
+
+// Compile libsodium from source using the traditional autoconf procedure, and return the directory containing the compiled library
+fn compile_libsodium_traditional(
+    target: &str,
+    source_dir: &Path,
+    install_dir: &Path,
+) -> Result<PathBuf, String> {
     use std::{fs, process::Command, str};
 
     // Decide on CC, CFLAGS and the --host configure argument
@@ -165,12 +200,10 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
     let mut cflags = build_compiler.cflags_env().into_string().unwrap();
     let ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
     let host_arg;
-    let cross_compiling;
     let help;
     let mut configure_extra = vec![];
 
     if target.contains("-wasi") {
-        cross_compiling = true;
         compiler = "zig cc --target=wasm32-wasi".to_string();
         host_arg = "--host=wasm32-wasi".to_string();
         configure_extra.push("--disable-ssp");
@@ -182,7 +215,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         // Determine Xcode directory path
         let xcode_select_output = Command::new("xcode-select").arg("-p").output().unwrap();
         if !xcode_select_output.status.success() {
-            panic!("Failed to run xcode-select -p");
+            return Err("Failed to run xcode-select -p".to_string());
         }
         let xcode_dir = str::from_utf8(&xcode_select_output.stdout)
             .unwrap()
@@ -238,9 +271,8 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
                 cflags += &format!(" -mios-simulator-version-min={ios_simulator_version_min}");
                 host_arg = "--host=aarch64-apple-darwin23".to_string();
             }
-            _ => panic!("Unknown iOS build target: {}", target),
+            _ => return Err(format!("Unknown iOS build target: {}", target)),
         }
-        cross_compiling = true;
         help = "";
     } else {
         if target.contains("i686") {
@@ -249,7 +281,7 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         }
         let host = env::var("HOST").unwrap();
         host_arg = format!("--host={target}");
-        cross_compiling = target != host;
+        let cross_compiling = target != host;
         help = if cross_compiling {
             "***********************************************************\n\
              Use the 'cargo zigbuild' command to cross-compile Rust code\n\
@@ -286,12 +318,15 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
         .args(configure_extra)
         .arg("--enable-shared=no")
         .arg("--disable-dependency-tracking")
-        .output()
-        .unwrap_or_else(|error| {
-            panic!("Failed to run './configure': {}\n{}", error, help);
-        });
+        .output();
+    let configure_output = match configure_output {
+        Ok(output) => output,
+        Err(error) => {
+            return Err(format!("Failed to run './configure': {}\n{}", error, help));
+        }
+    };
     if !configure_output.status.success() {
-        panic!(
+        return Err(format!(
             "\n{:?}\nCFLAGS={}\nLDFLAGS={}\nCC={}\n{}\n{}\n{}\n",
             configure_cmd,
             cflags,
@@ -300,98 +335,41 @@ fn make_libsodium(target: &str, source_dir: &Path, install_dir: &Path) -> PathBu
             String::from_utf8_lossy(&configure_output.stdout),
             String::from_utf8_lossy(&configure_output.stderr),
             help
-        );
+        ));
     }
 
-    // Run `make check`, or `make all` if we're cross-compiling
     let j_arg = format!("-j{}", env::var("NUM_JOBS").unwrap());
-    let make_arg = if cross_compiling { "all" } else { "check" };
-    let mut make_cmd = Command::new("make");
-    let make_output = make_cmd
-        .current_dir(source_dir)
-        .env("V", "1")
-        .arg(make_arg)
-        .arg(&j_arg)
-        .output()
-        .unwrap_or_else(|error| {
-            panic!("Failed to run 'make {}': {}\n{}", make_arg, error, help);
-        });
-    if !make_output.status.success() {
-        panic!(
-            "\n{:?}\n{}\n{}\n{}\n{}",
-            make_cmd,
-            String::from_utf8_lossy(&configure_output.stdout),
-            String::from_utf8_lossy(&make_output.stdout),
-            String::from_utf8_lossy(&make_output.stderr),
-            help
-        );
-    }
 
     // Run `make install`
     let mut install_cmd = Command::new("make");
     let install_output = install_cmd
         .current_dir(source_dir)
+        .arg(j_arg)
         .arg("install")
-        .output()
-        .unwrap_or_else(|error| {
-            panic!("Failed to run 'make install': {}", error);
-        });
+        .output();
+    let install_output = match install_output {
+        Ok(install_output) => install_output,
+        Err(error) => {
+            return Err(format!("Failed to run 'make install': {}\n", error));
+        }
+    };
     if !install_output.status.success() {
         panic!(
-            "\n{:?}\n{}\n{}\n{}\n{}\n",
-            install_cmd,
+            "\n{}\n{}\n{}\n",
             String::from_utf8_lossy(&configure_output.stdout),
-            String::from_utf8_lossy(&make_output.stdout),
             String::from_utf8_lossy(&install_output.stdout),
             String::from_utf8_lossy(&install_output.stderr)
         );
     }
-
-    install_dir.join("lib")
+    Ok(install_dir.join("lib"))
 }
 
-#[cfg(any(windows, target_env = "msvc"))]
-fn get_crate_dir() -> PathBuf {
-    env::var("CARGO_MANIFEST_DIR").unwrap().into()
-}
-
-#[cfg(target_env = "msvc")]
-fn is_release_profile() -> bool {
-    env::var("PROFILE").unwrap() == "release"
-}
-
-#[cfg(all(target_env = "msvc", target_pointer_width = "32"))]
-fn get_lib_dir(install_dir: &Path) -> PathBuf {
-    if is_release_profile() {
-        install_dir.join("libsodium/Win32/Release/v143/static/")
-    } else {
-        install_dir.join("libsodium/Win32/Debug/v143/static/")
-    }
-}
-
-#[cfg(all(target_env = "msvc", target_pointer_width = "64"))]
-fn get_lib_dir(install_dir: &Path) -> PathBuf {
-    if is_release_profile() {
-        install_dir.join("libsodium/x64/Release/v143/static/")
-    } else {
-        install_dir.join("libsodium/x64/Debug/v143/static/")
-    }
-}
-
-#[cfg(all(windows, not(target_env = "msvc"), target_pointer_width = "32"))]
-fn get_lib_dir(install_dir: &Path) -> PathBuf {
-    install_dir.join("libsodium-win32/lib/")
-}
-
-#[cfg(all(windows, not(target_env = "msvc"), target_pointer_width = "64"))]
-fn get_lib_dir(install_dir: &Path) -> PathBuf {
-    install_dir.join("libsodium-win64/lib/")
-}
-
-fn get_install_dir() -> PathBuf {
+// Get the directory where Cargo looks for libraries to link to
+fn get_cargo_install_dir() -> PathBuf {
     PathBuf::from(env::var("OUT_DIR").unwrap()).join("installed")
 }
 
+// Retrieve an archive from the internet, verify its signature, and return its contents
 fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<u8> {
     use minisign_verify::{PublicKey, Signature};
     use std::fs::{self, File};
@@ -418,7 +396,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     let mut archive_bin = vec![];
 
-    #[cfg(any(windows, feature = "fetch-latest"))]
+    #[cfg(feature = "fetch-latest")]
     {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
         let agent = ureq::AgentBuilder::new()
@@ -451,7 +429,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .unwrap();
     }
 
-    #[cfg(not(any(windows, feature = "fetch-latest")))]
+    #[cfg(not(feature = "fetch-latest"))]
     {
         File::open(filename)
             .unwrap()
@@ -467,13 +445,17 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
     archive_bin
 }
 
-fn build_libsodium() {
+// cargo doesn't properly handle #[cfg] and cfg!() in build.rs files,
+// so we have to reimplement everything dynamically.
+
+// Install libsodium from source
+fn install_from_source() -> Result<(), String> {
     use libflate::gzip::Decoder;
     use std::fs;
     use tar::Archive;
 
     // Determine build target triple
-    let mut target = env::var("TARGET").unwrap();
+    let mut target = Target::get().name;
     // Hack for RISC-V; Rust apparently uses a different convention for RISC-V triples
     if target.starts_with("riscv") {
         let mut split = target.split('-');
@@ -493,7 +475,7 @@ fn build_libsodium() {
     let archive_bin = retrieve_and_verify_archive(&filename, &signature_filename);
 
     // Determine source and install dir
-    let mut install_dir = get_install_dir();
+    let mut install_dir = get_cargo_install_dir();
     let mut source_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("source");
 
     // Avoid issues with paths containing spaces by falling back to using a tempfile.
@@ -520,7 +502,8 @@ fn build_libsodium() {
     archive.unpack(&source_dir).unwrap();
     source_dir.push(basedir);
 
-    let lib_dir = make_libsodium(&target, &source_dir, &install_dir);
+    let lib_dir = compile_libsodium_zig(&target, &source_dir)
+        .or_else(|_| compile_libsodium_traditional(&target, &source_dir, &install_dir))?;
 
     if target.contains("msvc") {
         println!("cargo:rustc-link-lib=static=libsodium");
@@ -537,4 +520,113 @@ fn build_libsodium() {
 
     println!("cargo:include={}", include_dir.to_str().unwrap());
     println!("cargo:lib={}", lib_dir.to_str().unwrap());
+
+    Ok(())
+}
+
+fn main() {
+    println!("cargo:rerun-if-env-changed=SODIUM_LIB_DIR");
+    println!("cargo:rerun-if-env-changed=SODIUM_SHARED");
+    println!("cargo:rerun-if-env-changed=SODIUM_USE_PKG_CONFIG");
+    println!("cargo:rerun-if-env-changed=VCPKGRS_DYNAMIC");
+    println!("cargo:rerun-if-env-changed=SODIUM_DISABLE_PIE");
+
+    let lib_dir_isset = env::var("SODIUM_LIB_DIR").is_ok();
+    let use_pkg_isset = if cfg!(feature = "use-pkg-config") {
+        true
+    } else {
+        env::var("SODIUM_USE_PKG_CONFIG").is_ok()
+    };
+    let shared_isset = env::var("SODIUM_SHARED").is_ok();
+
+    if lib_dir_isset && use_pkg_isset {
+        panic!("SODIUM_LIB_DIR is incompatible with SODIUM_USE_PKG_CONFIG. Set the only one env variable");
+    }
+
+    if lib_dir_isset {
+        find_libsodium_env();
+        return;
+    }
+    if use_pkg_isset {
+        if shared_isset {
+            println!("cargo:warning=SODIUM_SHARED has no effect with SODIUM_USE_PKG_CONFIG");
+        }
+        if !find_libsodium_pkgconfig() && !find_libsodium_vpkg() {
+            panic!("libsodium not found via pkg-config or vcpkg");
+        }
+        return;
+    }
+    if shared_isset {
+        println!("cargo:warning=SODIUM_SHARED has no effect for building libsodium from source");
+    }
+    let res = install_from_source();
+    if res.is_ok() {
+        return;
+    }
+    // If we can't build from source, try to find precompiled binaries
+    match Target::get().name.as_str() {
+        "i686-pc-windows-msvc" => {
+            let install_dir = get_cargo_install_dir();
+            let lib_dir =
+                extract_libsodium_precompiled_msvc("win32", Path::new("source"), &install_dir);
+            println!(
+                "cargo:rustc-link-search=native={}",
+                lib_dir.to_str().unwrap()
+            );
+            println!("cargo:rustc-link-lib=static=libsodium");
+            println!(
+                "cargo:include={}",
+                install_dir.join("include").to_str().unwrap()
+            );
+        }
+        "x86_64-pc-windows-msvc" => {
+            let install_dir = get_cargo_install_dir();
+            let lib_dir =
+                extract_libsodium_precompiled_msvc("x64", Path::new("source"), &install_dir);
+            println!(
+                "cargo:rustc-link-search=native={}",
+                lib_dir.to_str().unwrap()
+            );
+            println!("cargo:rustc-link-lib=static=libsodium");
+            println!(
+                "cargo:include={}",
+                install_dir.join("include").to_str().unwrap()
+            );
+        }
+        "i686-pc-windows-gnu" => {
+            let install_dir = get_cargo_install_dir();
+            let lib_dir =
+                extract_libsodium_precompiled_mingw("win32", Path::new("source"), &install_dir);
+            println!(
+                "cargo:rustc-link-search=native={}",
+                lib_dir.to_str().unwrap()
+            );
+            println!("cargo:rustc-link-lib=static=sodium");
+            println!(
+                "cargo:include={}",
+                install_dir.join("include").to_str().unwrap()
+            );
+        }
+        "x86_64-pc-windows-gnu" => {
+            let install_dir = get_cargo_install_dir();
+            let lib_dir =
+                extract_libsodium_precompiled_mingw("x64", Path::new("source"), &install_dir);
+            println!(
+                "cargo:rustc-link-search=native={}",
+                lib_dir.to_str().unwrap()
+            );
+            println!("cargo:rustc-link-lib=static=sodium");
+            println!(
+                "cargo:include={}",
+                install_dir.join("include").to_str().unwrap()
+            );
+        }
+        _ => {
+            panic!(
+                "Unable to compile or find precompiled libsodium for target [{}]: [{}]",
+                Target::get().name,
+                res.unwrap_err()
+            );
+        }
+    }
 }
