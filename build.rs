@@ -307,6 +307,7 @@ fn compile_libsodium_traditional(
     if env::var("SODIUM_DISABLE_PIE").is_ok() {
         configure_cmd.arg("--disable-pie");
     }
+    configure_cmd.arg("--disable-ssp");
     #[cfg(feature = "optimized")]
     configure_cmd.arg("--enable-opt");
     #[cfg(feature = "minimal")]
