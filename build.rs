@@ -123,8 +123,8 @@ fn extract_libsodium_precompiled_mingw(_: &str, _: &Path, install_dir: &Path) ->
     archive.unpack(install_dir).unwrap();
 
     match Target::get().name.as_str() {
-        "i686-pc-windows-gnu" => install_dir.join("libsodium/i686-w64-mingw32/lib"),
-        "x86_64-pc-windows-gnu" => install_dir.join("libsodium/x86_64-w64-mingw32/lib"),
+        "i686-pc-windows-gnu" => install_dir.join("libsodium-win32/lib"),
+        "x86_64-pc-windows-gnu" => install_dir.join("libsodium-win64/lib"),
         _ => panic!("Unsupported target"),
     }
 }
