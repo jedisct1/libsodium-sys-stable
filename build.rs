@@ -407,7 +407,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
         }
     }
     if download {
-        let baseurl = "http://download.libsodium.org/libsodium/releases";
+        let baseurl = std::env::var("SODIUM_BASE_URL").unwrap_or("http://download.libsodium.org/libsodium/releases".into());
         let agent = ureq::AgentBuilder::new()
             .try_proxy_from_env(true)
             .timeout(std::time::Duration::from_secs(300))
