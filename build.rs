@@ -147,45 +147,6 @@ fn get_precompiled_lib_dir_msvc_x64(install_dir: &Path) -> PathBuf {
     }
 }
 
-fn compile_libsodium_zig(target: &str, source_dir: &Path) -> Result<PathBuf, String> {
-    use std::process::Command;
-
-    let host = env::var("HOST").unwrap();
-    let cross_compiling = target != host;
-    let target = Target::get().name;
-    if cross_compiling && target != "wasm32-wasi" {
-        return Err(
-            "Cross-compiling with Zig is not implemented in this Rust file yet (except for WebAssembly)".to_string(),
-        );
-    }
-
-    let mut install_cmd = Command::new("zig");
-    let mut install_output = install_cmd.current_dir(source_dir).arg("build");
-    if target.as_str() == "wasm32-wasi" {
-        install_output = install_output.arg("--target").arg("wasm32-wasi");
-    };
-    if Target::get().is_release {
-        install_output = install_output.arg("-Doptimize=ReleaseFast");
-    }
-    let install_output = install_output.output();
-    let install_output = match install_output {
-        Ok(output) => output,
-        Err(error) => {
-            return Err(format!("Failed to run 'zig build': {}\n", error));
-        }
-    };
-    if !install_output.status.success() {
-        return Err(format!(
-            "\n{:?}\n{}\n{}\n",
-            install_cmd,
-            String::from_utf8_lossy(&install_output.stdout),
-            String::from_utf8_lossy(&install_output.stderr)
-        ));
-    }
-    let install_path = source_dir.join("zig-out/lib");
-    Ok(install_path)
-}
-
 // Compile libsodium from source using the traditional autoconf procedure, and return the directory containing the compiled library
 fn compile_libsodium_traditional(
     target: &str,
@@ -198,13 +159,15 @@ fn compile_libsodium_traditional(
     let build_compiler = cc::Build::new().get_compiler();
     let mut compiler = build_compiler.path().to_str().unwrap().to_string();
     let mut cflags = build_compiler.cflags_env().into_string().unwrap();
-    let ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
+    let mut ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
     let host_arg;
     let help;
     let mut configure_extra = vec![];
 
     if target.contains("-wasi") {
-        compiler = "zig cc --target=wasm32-wasi".to_string();
+        compiler = "zig cc".to_string();
+        cflags += " -target wasm32-wasi";
+        ldflags += " -target wasm32-wasi";
         host_arg = "--host=wasm32-wasi".to_string();
         configure_extra.push("--disable-ssp");
         configure_extra.push("--without-pthreads");
@@ -502,8 +465,7 @@ fn install_from_source() -> Result<(), String> {
     archive.unpack(&source_dir).unwrap();
     source_dir.push(basedir);
 
-    let lib_dir = compile_libsodium_zig(&target, &source_dir)
-        .or_else(|_| compile_libsodium_traditional(&target, &source_dir, &install_dir))?;
+    let lib_dir = compile_libsodium_traditional(&target, &source_dir, &install_dir)?;
 
     if target.contains("msvc") {
         println!("cargo:rustc-link-lib=static=libsodium");
