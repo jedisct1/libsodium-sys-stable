@@ -397,6 +397,7 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
 
     let mut archive_bin = vec![];
 
+    #[allow(unused_mut)]
     let mut download = true;
     #[cfg(not(feature = "fetch-latest"))]
     {
