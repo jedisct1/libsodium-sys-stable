@@ -100,6 +100,7 @@ fn extract_libsodium_precompiled_msvc(_: &str, _: &Path, install_dir: &Path) -> 
     match Target::get().name.as_str() {
         "i686-pc-windows-msvc" => get_precompiled_lib_dir_msvc_win32(install_dir),
         "x86_64-pc-windows-msvc" => get_precompiled_lib_dir_msvc_x64(install_dir),
+        "aarch64-pc-windows-msvc" => get_precompiled_lib_dir_msvc_arm64(install_dir),
         _ => panic!("Unsupported target"),
     }
 }
@@ -144,6 +145,15 @@ fn get_precompiled_lib_dir_msvc_x64(install_dir: &Path) -> PathBuf {
         install_dir.join("libsodium/x64/Release/v143/static/")
     } else {
         install_dir.join("libsodium/x64/Debug/v143/static/")
+    }
+}
+
+// Get the directory containing precompiled MSVC binaries for aarch64
+fn get_precompiled_lib_dir_msvc_arm64(install_dir: &Path) -> PathBuf {
+    if Target::get().is_release {
+        install_dir.join("libsodium/ARM64/Release/v143/static/")
+    } else {
+        install_dir.join("libsodium/ARM64/Debug/v143/static/")
     }
 }
 
@@ -547,6 +557,20 @@ fn main() {
             let install_dir = get_cargo_install_dir();
             let lib_dir =
                 extract_libsodium_precompiled_msvc("x64", Path::new("source"), &install_dir);
+            println!(
+                "cargo:rustc-link-search=native={}",
+                lib_dir.to_str().unwrap()
+            );
+            println!("cargo:rustc-link-lib=static=libsodium");
+            println!(
+                "cargo:include={}",
+                install_dir.join("include").to_str().unwrap()
+            );
+        }
+        "aarch64-pc-windows-msvc" => {
+            let install_dir = get_cargo_install_dir();
+            let lib_dir =
+                extract_libsodium_precompiled_msvc("arm64", Path::new("source"), &install_dir);
             println!(
                 "cargo:rustc-link-search=native={}",
                 lib_dir.to_str().unwrap()
