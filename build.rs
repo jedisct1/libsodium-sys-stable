@@ -382,14 +382,18 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
     }
     if download {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
-        let agent = ureq::AgentBuilder::new()
-            .try_proxy_from_env(true)
-            .timeout(std::time::Duration::from_secs(300))
-            .build();
-        let response = agent.get(&format!("{}/{}", baseurl, filename)).call();
+        let agent = ureq::Agent::config_builder()
+            .timeout_global(Some(std::time::Duration::from_secs(300)))
+            .proxy(ureq::Proxy::try_from_env())
+            .build()
+            .new_agent();
+        let mut response = agent
+            .get(&format!("{}/{}", baseurl, filename))
+            .call()
+            .unwrap();
         response
-            .unwrap()
-            .into_reader()
+            .body_mut()
+            .as_reader()
             .read_to_end(&mut archive_bin)
             .unwrap();
         File::create(filename)
@@ -397,13 +401,14 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
             .write_all(&archive_bin)
             .unwrap();
 
-        let response = agent
+        let mut response = agent
             .get(&format!("{}/{}", baseurl, signature_filename))
-            .call();
+            .call()
+            .unwrap();
         let mut signature_bin = vec![];
         response
-            .unwrap()
-            .into_reader()
+            .body_mut()
+            .as_reader()
             .read_to_end(&mut signature_bin)
             .unwrap();
         File::create(signature_filename)
