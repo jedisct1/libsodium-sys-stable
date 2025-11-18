@@ -14,13 +14,13 @@ version = "1.22.4"
 
 [build-dependencies]
 cc = "1.2"
-libflate = "2.1"
+libflate = "2.2"
 minisign-verify = "0.2"
 pkg-config = "0.3"
 tar = "0.4"
 ureq = { version = "3.1", default-features = false }
 vcpkg = "0.2"
-zip = { version = "5.1", default-features = false, features = ["deflate"] }
+zip = { version = "6.0", default-features = false, features = ["deflate"] }
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
