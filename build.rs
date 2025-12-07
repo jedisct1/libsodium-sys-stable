@@ -382,9 +382,29 @@ fn retrieve_and_verify_archive(filename: &str, signature_filename: &str) -> Vec<
     }
     if download {
         let baseurl = "http://download.libsodium.org/libsodium/releases";
+        let ureq_proxy;
+        #[cfg(windows)]
+        {
+            use sysproxy::Sysproxy;
+
+            ureq_proxy = Sysproxy::get_system_proxy()
+                .ok()
+                .and_then(|proxy| {
+                    ureq::Proxy::builder(ureq::ProxyProtocol::Http)
+                        .host(&proxy.host)
+                        .port(proxy.port)
+                        .build()
+                        .ok()
+                })
+                .or_else(|| ureq::Proxy::try_from_env());
+        }
+        #[cfg(not(windows))]
+        {
+            ureq_proxy = ureq::Proxy::try_from_env();
+        };
         let agent = ureq::Agent::config_builder()
             .timeout_global(Some(std::time::Duration::from_secs(300)))
-            .proxy(ureq::Proxy::try_from_env())
+            .proxy(ureq_proxy)
             .build()
             .new_agent();
         let mut response = agent
