@@ -27,3 +27,19 @@ fn test_crypto_secretbox_primitive() {
         assert_eq!(s, p);
     }
 }
+
+#[test]
+fn test_crypto_secretbox_boxzerobytes() {
+    assert_eq!(
+        unsafe { crypto_secretbox_boxzerobytes() } as usize,
+        crypto_secretbox_BOXZEROBYTES as usize
+    );
+}
+
+#[test]
+fn test_crypto_secretbox_zerobytes() {
+    assert_eq!(
+        unsafe { crypto_secretbox_zerobytes() } as usize,
+        crypto_secretbox_ZEROBYTES as usize
+    );
+}
