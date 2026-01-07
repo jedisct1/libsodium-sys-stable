@@ -9,6 +9,7 @@ versions of libsodium instead of point releases.
 - `optimized`: Build a version optimized for the current platform
 - `minimal`: Do not build deprecated APIs
 - `use-pkg-config`: Force the use of pkg-config to find libsodium
+- `wasi-component`: Build as a WASI component exposing libsodium functions
 
 ## Build Configuration
 
@@ -38,6 +39,19 @@ On Windows, if libsodium is not found via environment variables or pkg-config, p
 
 #### WebAssembly/WASI
 Compiling to WebAssembly/WASI targets requires the Zig compiler to be installed. The build automatically configures the appropriate flags for WASI compilation.
+
+### WASI Component Model
+
+The `wasi-component` feature enables building libsodium as a WASI component. This provides a high-level, type-safe interface for WebAssembly hosts.
+
+**Requirements:**
+- Rust 1.82 or later (for native `wasm32-wasip2` target support)
+- Zig compiler (for building libsodium C code)
+
+**Build command:**
+```bash
+cargo build --target wasm32-wasip2 --features wasi-component
+```
 
 #### iOS
 iOS builds are supported for multiple architectures:

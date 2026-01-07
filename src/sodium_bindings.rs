@@ -491,6 +491,8 @@ unsafe extern "C" {
 pub struct crypto_aead_aes256gcm_state_ {
     pub opaque: [libc::c_uchar; 512usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_aead_aes256gcm_state_"]
@@ -839,6 +841,8 @@ pub struct crypto_hash_sha512_state {
     pub count: [u64; 2usize],
     pub buf: [u8; 128usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_hash_sha512_state"]
@@ -909,6 +913,8 @@ pub struct crypto_auth_hmacsha512_state {
     pub ictx: crypto_hash_sha512_state,
     pub octx: crypto_hash_sha512_state,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_auth_hmacsha512_state"]
@@ -1030,6 +1036,8 @@ pub struct crypto_hash_sha256_state {
     pub count: u64,
     pub buf: [u8; 64usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_hash_sha256_state"]
@@ -1100,6 +1108,8 @@ pub struct crypto_auth_hmacsha256_state {
     pub ictx: crypto_hash_sha256_state,
     pub octx: crypto_hash_sha256_state,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_auth_hmacsha256_state"]
@@ -1492,6 +1502,8 @@ unsafe extern "C" {
 pub struct crypto_core_keccak1600_state {
     pub opaque: [libc::c_uchar; 224usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_core_keccak1600_state"]
@@ -1595,6 +1607,8 @@ unsafe extern "C" {
 pub struct crypto_generichash_blake2b_state {
     pub opaque: [libc::c_uchar; 384usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_generichash_blake2b_state"]
@@ -1947,6 +1961,8 @@ unsafe extern "C" {
 pub struct crypto_kdf_hkdf_sha256_state {
     pub st: crypto_auth_hmacsha256_state,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_kdf_hkdf_sha256_state"]
@@ -2014,6 +2030,8 @@ unsafe extern "C" {
 pub struct crypto_kdf_hkdf_sha512_state {
     pub st: crypto_auth_hmacsha512_state,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_kdf_hkdf_sha512_state"]
@@ -2095,6 +2113,8 @@ unsafe extern "C" {
 pub struct crypto_onetimeauth_poly1305_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_onetimeauth_poly1305_state"]
@@ -2754,6 +2774,8 @@ pub struct crypto_secretstream_xchacha20poly1305_state {
     pub nonce: [libc::c_uchar; 12usize],
     pub _pad: [libc::c_uchar; 8usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_secretstream_xchacha20poly1305_state"]
@@ -2869,6 +2891,8 @@ unsafe extern "C" {
 pub struct crypto_sign_ed25519ph_state {
     pub hs: crypto_hash_sha512_state,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_sign_ed25519ph_state"]
@@ -3189,6 +3213,8 @@ unsafe extern "C" {
 pub struct crypto_xof_shake128_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_xof_shake128_state"]
@@ -3244,6 +3270,8 @@ unsafe extern "C" {
 pub struct crypto_xof_shake256_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_xof_shake256_state"]
@@ -3299,6 +3327,8 @@ unsafe extern "C" {
 pub struct crypto_xof_turboshake128_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_xof_turboshake128_state"]
@@ -3355,6 +3385,8 @@ unsafe extern "C" {
 pub struct crypto_xof_turboshake256_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of crypto_xof_turboshake256_state"]
@@ -3406,6 +3438,8 @@ pub struct randombytes_implementation {
     pub buf: ::core::option::Option<unsafe extern "C" fn(buf: *mut libc::c_void, size: usize)>,
     pub close: ::core::option::Option<unsafe extern "C" fn() -> libc::c_int>,
 }
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_arch = "wasm32"))]
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of randombytes_implementation"]
