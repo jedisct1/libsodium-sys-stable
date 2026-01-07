@@ -13,17 +13,19 @@ categories = ["cryptography", "api-bindings"]
 version = "1.23.1"
 
 [build-dependencies]
-cc = "1.2"
-libflate = "2.2"
-minisign-verify = "0.2"
-pkg-config = "0.3"
-tar = "0.4"
-ureq = { version = "3.1", default-features = false }
-vcpkg = "0.2"
+cc = "1.2.51"
+libflate = "2.2.1"
+minisign-verify = "0.2.4"
+pkg-config = "0.3.32"
+tar = "0.4.44"
+ureq = { version = "3.1.4", default-features = false }
+vcpkg = "0.2.15"
 zip = { version = "7.0", default-features = false, features = ["deflate"] }
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
+wit-bindgen = { version = "0.50", optional = true, default-features = false, features = ["macros"] }
+wai-bindgen-rust = { version = "0.2.3", optional = true }
 
 [lib]
 name = "libsodium_sys"
@@ -34,3 +36,5 @@ use-pkg-config = []
 fetch-latest = []
 optimized = []
 minimal = []
+wasi-component = ["wit-bindgen"]
+wasmer-wai = ["wai-bindgen-rust"]

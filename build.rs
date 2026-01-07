@@ -175,6 +175,9 @@ fn compile_libsodium_traditional(
     let mut configure_extra = vec![];
 
     if target.contains("-wasi") {
+        // Handle wasm32-wasi (wasip1) and wasm32-wasip2 targets
+        // Also compatible with Wasmer WASIX (superset of WASI)
+        // Zig compiles to wasm32-wasi which is compatible with both
         compiler = "zig cc".to_string();
         cflags += " -target wasm32-wasi";
         ldflags += " -target wasm32-wasi";
@@ -183,7 +186,11 @@ fn compile_libsodium_traditional(
         configure_extra.push("--without-pthreads");
         env::set_var("AR", "zig ar");
         env::set_var("RANLIB", "zig ranlib");
-        help = "The Zig SDK needs to be installed in order to cross-compile to WebAssembly\n";
+        help = "The Zig SDK needs to be installed in order to cross-compile to WebAssembly.\n\
+                For WASI component support, use Rust 1.82+ with:\n\
+                cargo build --target wasm32-wasip2 --features wasi-component\n\
+                For Wasmer WAI support, use:\n\
+                cargo build --target wasm32-wasi --features wasmer-wai\n";
     } else if target.contains("-ios") {
         // Determine Xcode directory path
         let xcode_select_output = Command::new("xcode-select").arg("-p").output().unwrap();

@@ -9,6 +9,8 @@ versions of libsodium instead of point releases.
 - `optimized`: Build a version optimized for the current platform
 - `minimal`: Do not build deprecated APIs
 - `use-pkg-config`: Force the use of pkg-config to find libsodium
+- `wasi-component`: Build as a WASI component exposing libsodium functions
+- `wasmer-wai`: Build with WAI (WebAssembly Interfaces) support for Wasmer runtime
 
 ## Build Configuration
 
@@ -51,6 +53,73 @@ The build automatically detects Xcode paths and configures the appropriate SDK a
 
 #### Cross-Compilation
 For cross-compilation to non-WebAssembly targets, consider using `cargo zigbuild` which handles C dependencies more easily.
+
+### WASI Component Model
+
+The `wasi-component` feature enables building libsodium as a WASI component. This provides a high-level, type-safe interface for WebAssembly hosts.
+
+**Requirements:**
+- Rust 1.82 or later (for native `wasm32-wasip2` target support)
+- Zig compiler (for building libsodium C code)
+
+**Build command:**
+```bash
+cargo build --target wasm32-wasip2 --features wasi-component
+```
+
+The WIT interface is defined in `wit/libsodium.wit` (package `libsodium:crypto@1.0.21`) and exposes the same comprehensive API as the WAI interface, organized into separate interfaces for each cryptographic primitive.
+
+### Wasmer WAI Support
+
+The `wasmer-wai` feature enables building libsodium with WAI (WebAssembly Interfaces) support for the Wasmer runtime with WASIX. This provides an alternative interface format for Wasmer's ecosystem.
+
+**Requirements:**
+- Zig compiler (for building libsodium C code)
+
+**Build command:**
+```bash
+cargo build --target wasm32-wasip1 --features wasmer-wai
+```
+
+The WAI interface is defined in `wai/libsodium.wai` and exposes nearly all of libsodium's functionality:
+
+**Core:**
+- Library initialization and version info
+- Random number generation (including deterministic)
+
+**Symmetric encryption:**
+- Secretbox (XSalsa20-Poly1305, XChaCha20-Poly1305)
+- AEAD (XChaCha20-Poly1305, ChaCha20-Poly1305-IETF, AEGIS-128L, AEGIS-256, AES-256-GCM)
+- Stream ciphers (Salsa20, XSalsa20, ChaCha20, XChaCha20)
+- Secret stream (chunked streaming encryption)
+
+**Public-key cryptography:**
+- Box (X25519-XSalsa20-Poly1305, X25519-XChaCha20-Poly1305)
+- Sealed boxes (anonymous encryption)
+- Digital signatures (Ed25519, Ed25519ph)
+- Key exchange (X25519)
+
+**Hashing and authentication:**
+- Generic hashing (BLAKE2b, streaming)
+- SHA-256, SHA-512 (one-shot and streaming)
+- Short-input hashing (SipHash)
+- HMAC (SHA-256, SHA-512, SHA-512-256)
+- One-time authentication (Poly1305)
+- XOF (SHAKE128, SHAKE256, TurboSHAKE128, TurboSHAKE256)
+
+**Key derivation:**
+- KDF (BLAKE2b-based)
+- HKDF (SHA-256, SHA-512)
+- Password hashing (Argon2, scrypt)
+
+**Low-level primitives:**
+- Scalar multiplication (Curve25519, Ed25519, Ristretto255)
+- Ristretto255 and Ed25519 group operations
+- Constant-time comparison
+
+**Utilities:**
+- Hex and Base64 encoding/decoding
+- IP address encryption (ipcrypt)
 
 ## Build Priority
 

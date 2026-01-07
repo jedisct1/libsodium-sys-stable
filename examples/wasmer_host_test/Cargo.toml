@@ -1,0 +1,11 @@
+[package]
+name = "wasmer_host_test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+wasmer = "6.0"
+wasmer-wasix = "0.601"
+wai-bindgen-wasmer = "0.601"
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
