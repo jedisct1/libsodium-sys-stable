@@ -25,10 +25,13 @@ fn build_wasm_component() -> bool {
     let status = Command::new("cargo")
         .args([
             "rustc",
-            "--target", "wasm32-wasip2",
-            "--features", "wasi-component",
+            "--target",
+            "wasm32-wasip2",
+            "--features",
+            "wasi-component",
             "--release",
-            "--crate-type", "cdylib",
+            "--crate-type",
+            "cdylib",
         ])
         .status()
         .expect("Failed to build component");
