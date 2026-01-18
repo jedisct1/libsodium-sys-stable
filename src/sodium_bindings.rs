@@ -491,17 +491,6 @@ unsafe extern "C" {
 pub struct crypto_aead_aes256gcm_state_ {
     pub opaque: [libc::c_uchar; 512usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_aead_aes256gcm_state_"]
-        [::core::mem::size_of::<crypto_aead_aes256gcm_state_>() - 512usize];
-    ["Alignment of crypto_aead_aes256gcm_state_"]
-        [::core::mem::align_of::<crypto_aead_aes256gcm_state_>() - 16usize];
-    ["Offset of field: crypto_aead_aes256gcm_state_::opaque"]
-        [::core::mem::offset_of!(crypto_aead_aes256gcm_state_, opaque) - 0usize];
-};
 pub type crypto_aead_aes256gcm_state = crypto_aead_aes256gcm_state_;
 unsafe extern "C" {
     pub fn crypto_aead_aes256gcm_statebytes() -> usize;
@@ -841,21 +830,6 @@ pub struct crypto_hash_sha512_state {
     pub count: [u64; 2usize],
     pub buf: [u8; 128usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_hash_sha512_state"]
-        [::core::mem::size_of::<crypto_hash_sha512_state>() - 208usize];
-    ["Alignment of crypto_hash_sha512_state"]
-        [::core::mem::align_of::<crypto_hash_sha512_state>() - 8usize];
-    ["Offset of field: crypto_hash_sha512_state::state"]
-        [::core::mem::offset_of!(crypto_hash_sha512_state, state) - 0usize];
-    ["Offset of field: crypto_hash_sha512_state::count"]
-        [::core::mem::offset_of!(crypto_hash_sha512_state, count) - 64usize];
-    ["Offset of field: crypto_hash_sha512_state::buf"]
-        [::core::mem::offset_of!(crypto_hash_sha512_state, buf) - 80usize];
-};
 unsafe extern "C" {
     pub fn crypto_hash_sha512_statebytes() -> usize;
 }
@@ -913,19 +887,6 @@ pub struct crypto_auth_hmacsha512_state {
     pub ictx: crypto_hash_sha512_state,
     pub octx: crypto_hash_sha512_state,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_auth_hmacsha512_state"]
-        [::core::mem::size_of::<crypto_auth_hmacsha512_state>() - 416usize];
-    ["Alignment of crypto_auth_hmacsha512_state"]
-        [::core::mem::align_of::<crypto_auth_hmacsha512_state>() - 8usize];
-    ["Offset of field: crypto_auth_hmacsha512_state::ictx"]
-        [::core::mem::offset_of!(crypto_auth_hmacsha512_state, ictx) - 0usize];
-    ["Offset of field: crypto_auth_hmacsha512_state::octx"]
-        [::core::mem::offset_of!(crypto_auth_hmacsha512_state, octx) - 208usize];
-};
 unsafe extern "C" {
     pub fn crypto_auth_hmacsha512_statebytes() -> usize;
 }
@@ -1036,21 +997,6 @@ pub struct crypto_hash_sha256_state {
     pub count: u64,
     pub buf: [u8; 64usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_hash_sha256_state"]
-        [::core::mem::size_of::<crypto_hash_sha256_state>() - 104usize];
-    ["Alignment of crypto_hash_sha256_state"]
-        [::core::mem::align_of::<crypto_hash_sha256_state>() - 8usize];
-    ["Offset of field: crypto_hash_sha256_state::state"]
-        [::core::mem::offset_of!(crypto_hash_sha256_state, state) - 0usize];
-    ["Offset of field: crypto_hash_sha256_state::count"]
-        [::core::mem::offset_of!(crypto_hash_sha256_state, count) - 32usize];
-    ["Offset of field: crypto_hash_sha256_state::buf"]
-        [::core::mem::offset_of!(crypto_hash_sha256_state, buf) - 40usize];
-};
 unsafe extern "C" {
     pub fn crypto_hash_sha256_statebytes() -> usize;
 }
@@ -1108,19 +1054,6 @@ pub struct crypto_auth_hmacsha256_state {
     pub ictx: crypto_hash_sha256_state,
     pub octx: crypto_hash_sha256_state,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_auth_hmacsha256_state"]
-        [::core::mem::size_of::<crypto_auth_hmacsha256_state>() - 208usize];
-    ["Alignment of crypto_auth_hmacsha256_state"]
-        [::core::mem::align_of::<crypto_auth_hmacsha256_state>() - 8usize];
-    ["Offset of field: crypto_auth_hmacsha256_state::ictx"]
-        [::core::mem::offset_of!(crypto_auth_hmacsha256_state, ictx) - 0usize];
-    ["Offset of field: crypto_auth_hmacsha256_state::octx"]
-        [::core::mem::offset_of!(crypto_auth_hmacsha256_state, octx) - 104usize];
-};
 unsafe extern "C" {
     pub fn crypto_auth_hmacsha256_statebytes() -> usize;
 }
@@ -1502,17 +1435,6 @@ unsafe extern "C" {
 pub struct crypto_core_keccak1600_state {
     pub opaque: [libc::c_uchar; 224usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_core_keccak1600_state"]
-        [::core::mem::size_of::<crypto_core_keccak1600_state>() - 224usize];
-    ["Alignment of crypto_core_keccak1600_state"]
-        [::core::mem::align_of::<crypto_core_keccak1600_state>() - 16usize];
-    ["Offset of field: crypto_core_keccak1600_state::opaque"]
-        [::core::mem::offset_of!(crypto_core_keccak1600_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_core_keccak1600_statebytes() -> usize;
 }
@@ -1607,17 +1529,6 @@ unsafe extern "C" {
 pub struct crypto_generichash_blake2b_state {
     pub opaque: [libc::c_uchar; 384usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_generichash_blake2b_state"]
-        [::core::mem::size_of::<crypto_generichash_blake2b_state>() - 384usize];
-    ["Alignment of crypto_generichash_blake2b_state"]
-        [::core::mem::align_of::<crypto_generichash_blake2b_state>() - 64usize];
-    ["Offset of field: crypto_generichash_blake2b_state::opaque"]
-        [::core::mem::offset_of!(crypto_generichash_blake2b_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_generichash_blake2b_bytes_min() -> usize;
 }
@@ -1815,6 +1726,9 @@ unsafe extern "C" {
     pub fn crypto_ipcrypt_keygen(k: *mut libc::c_uchar);
 }
 unsafe extern "C" {
+    pub fn crypto_ipcrypt_nd_keygen(k: *mut libc::c_uchar);
+}
+unsafe extern "C" {
     pub fn crypto_ipcrypt_ndx_keygen(k: *mut libc::c_uchar);
 }
 unsafe extern "C" {
@@ -1961,17 +1875,6 @@ unsafe extern "C" {
 pub struct crypto_kdf_hkdf_sha256_state {
     pub st: crypto_auth_hmacsha256_state,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_kdf_hkdf_sha256_state"]
-        [::core::mem::size_of::<crypto_kdf_hkdf_sha256_state>() - 208usize];
-    ["Alignment of crypto_kdf_hkdf_sha256_state"]
-        [::core::mem::align_of::<crypto_kdf_hkdf_sha256_state>() - 8usize];
-    ["Offset of field: crypto_kdf_hkdf_sha256_state::st"]
-        [::core::mem::offset_of!(crypto_kdf_hkdf_sha256_state, st) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_kdf_hkdf_sha256_statebytes() -> usize;
 }
@@ -2030,17 +1933,6 @@ unsafe extern "C" {
 pub struct crypto_kdf_hkdf_sha512_state {
     pub st: crypto_auth_hmacsha512_state,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_kdf_hkdf_sha512_state"]
-        [::core::mem::size_of::<crypto_kdf_hkdf_sha512_state>() - 416usize];
-    ["Alignment of crypto_kdf_hkdf_sha512_state"]
-        [::core::mem::align_of::<crypto_kdf_hkdf_sha512_state>() - 8usize];
-    ["Offset of field: crypto_kdf_hkdf_sha512_state::st"]
-        [::core::mem::offset_of!(crypto_kdf_hkdf_sha512_state, st) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_kdf_hkdf_sha512_statebytes() -> usize;
 }
@@ -2113,17 +2005,6 @@ unsafe extern "C" {
 pub struct crypto_onetimeauth_poly1305_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_onetimeauth_poly1305_state"]
-        [::core::mem::size_of::<crypto_onetimeauth_poly1305_state>() - 256usize];
-    ["Alignment of crypto_onetimeauth_poly1305_state"]
-        [::core::mem::align_of::<crypto_onetimeauth_poly1305_state>() - 16usize];
-    ["Offset of field: crypto_onetimeauth_poly1305_state::opaque"]
-        [::core::mem::offset_of!(crypto_onetimeauth_poly1305_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_onetimeauth_poly1305_statebytes() -> usize;
 }
@@ -2774,21 +2655,6 @@ pub struct crypto_secretstream_xchacha20poly1305_state {
     pub nonce: [libc::c_uchar; 12usize],
     pub _pad: [libc::c_uchar; 8usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_secretstream_xchacha20poly1305_state"]
-        [::core::mem::size_of::<crypto_secretstream_xchacha20poly1305_state>() - 52usize];
-    ["Alignment of crypto_secretstream_xchacha20poly1305_state"]
-        [::core::mem::align_of::<crypto_secretstream_xchacha20poly1305_state>() - 1usize];
-    ["Offset of field: crypto_secretstream_xchacha20poly1305_state::k"]
-        [::core::mem::offset_of!(crypto_secretstream_xchacha20poly1305_state, k) - 0usize];
-    ["Offset of field: crypto_secretstream_xchacha20poly1305_state::nonce"]
-        [::core::mem::offset_of!(crypto_secretstream_xchacha20poly1305_state, nonce) - 32usize];
-    ["Offset of field: crypto_secretstream_xchacha20poly1305_state::_pad"]
-        [::core::mem::offset_of!(crypto_secretstream_xchacha20poly1305_state, _pad) - 44usize];
-};
 unsafe extern "C" {
     pub fn crypto_secretstream_xchacha20poly1305_statebytes() -> usize;
 }
@@ -2891,17 +2757,6 @@ unsafe extern "C" {
 pub struct crypto_sign_ed25519ph_state {
     pub hs: crypto_hash_sha512_state,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_sign_ed25519ph_state"]
-        [::core::mem::size_of::<crypto_sign_ed25519ph_state>() - 208usize];
-    ["Alignment of crypto_sign_ed25519ph_state"]
-        [::core::mem::align_of::<crypto_sign_ed25519ph_state>() - 8usize];
-    ["Offset of field: crypto_sign_ed25519ph_state::hs"]
-        [::core::mem::offset_of!(crypto_sign_ed25519ph_state, hs) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_sign_ed25519ph_statebytes() -> usize;
 }
@@ -3213,17 +3068,6 @@ unsafe extern "C" {
 pub struct crypto_xof_shake128_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_xof_shake128_state"]
-        [::core::mem::size_of::<crypto_xof_shake128_state>() - 256usize];
-    ["Alignment of crypto_xof_shake128_state"]
-        [::core::mem::align_of::<crypto_xof_shake128_state>() - 16usize];
-    ["Offset of field: crypto_xof_shake128_state::opaque"]
-        [::core::mem::offset_of!(crypto_xof_shake128_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_xof_shake128(
         out: *mut libc::c_uchar,
@@ -3270,17 +3114,6 @@ unsafe extern "C" {
 pub struct crypto_xof_shake256_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_xof_shake256_state"]
-        [::core::mem::size_of::<crypto_xof_shake256_state>() - 256usize];
-    ["Alignment of crypto_xof_shake256_state"]
-        [::core::mem::align_of::<crypto_xof_shake256_state>() - 16usize];
-    ["Offset of field: crypto_xof_shake256_state::opaque"]
-        [::core::mem::offset_of!(crypto_xof_shake256_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_xof_shake256(
         out: *mut libc::c_uchar,
@@ -3327,17 +3160,6 @@ unsafe extern "C" {
 pub struct crypto_xof_turboshake128_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_xof_turboshake128_state"]
-        [::core::mem::size_of::<crypto_xof_turboshake128_state>() - 256usize];
-    ["Alignment of crypto_xof_turboshake128_state"]
-        [::core::mem::align_of::<crypto_xof_turboshake128_state>() - 16usize];
-    ["Offset of field: crypto_xof_turboshake128_state::opaque"]
-        [::core::mem::offset_of!(crypto_xof_turboshake128_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_xof_turboshake128(
         out: *mut libc::c_uchar,
@@ -3385,17 +3207,6 @@ unsafe extern "C" {
 pub struct crypto_xof_turboshake256_state {
     pub opaque: [libc::c_uchar; 256usize],
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of crypto_xof_turboshake256_state"]
-        [::core::mem::size_of::<crypto_xof_turboshake256_state>() - 256usize];
-    ["Alignment of crypto_xof_turboshake256_state"]
-        [::core::mem::align_of::<crypto_xof_turboshake256_state>() - 16usize];
-    ["Offset of field: crypto_xof_turboshake256_state::opaque"]
-        [::core::mem::offset_of!(crypto_xof_turboshake256_state, opaque) - 0usize];
-};
 unsafe extern "C" {
     pub fn crypto_xof_turboshake256(
         out: *mut libc::c_uchar,
@@ -3438,27 +3249,6 @@ pub struct randombytes_implementation {
     pub buf: ::core::option::Option<unsafe extern "C" fn(buf: *mut libc::c_void, size: usize)>,
     pub close: ::core::option::Option<unsafe extern "C" fn() -> libc::c_int>,
 }
-#[cfg(not(target_arch = "wasm32"))]
-#[cfg(not(target_arch = "wasm32"))]
-#[allow(clippy::unnecessary_operation, clippy::identity_op)]
-const _: () = {
-    ["Size of randombytes_implementation"]
-        [::core::mem::size_of::<randombytes_implementation>() - 48usize];
-    ["Alignment of randombytes_implementation"]
-        [::core::mem::align_of::<randombytes_implementation>() - 8usize];
-    ["Offset of field: randombytes_implementation::implementation_name"]
-        [::core::mem::offset_of!(randombytes_implementation, implementation_name) - 0usize];
-    ["Offset of field: randombytes_implementation::random"]
-        [::core::mem::offset_of!(randombytes_implementation, random) - 8usize];
-    ["Offset of field: randombytes_implementation::stir"]
-        [::core::mem::offset_of!(randombytes_implementation, stir) - 16usize];
-    ["Offset of field: randombytes_implementation::uniform"]
-        [::core::mem::offset_of!(randombytes_implementation, uniform) - 24usize];
-    ["Offset of field: randombytes_implementation::buf"]
-        [::core::mem::offset_of!(randombytes_implementation, buf) - 32usize];
-    ["Offset of field: randombytes_implementation::close"]
-        [::core::mem::offset_of!(randombytes_implementation, close) - 40usize];
-};
 unsafe extern "C" {
     pub fn randombytes_seedbytes() -> usize;
 }

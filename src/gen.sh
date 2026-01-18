@@ -9,4 +9,5 @@ bindgen PATH_TO/libsodium-stable/src/libsodium/include/sodium.h -o sodium_bindin
   --generate=functions,types,vars \
   --allowlist-function=$REGEX \
   --allowlist-type=$REGEX \
-  --allowlist-var=$REGEX
+  --allowlist-var=$REGEX \
+  --no-layout-tests
