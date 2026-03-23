@@ -6,7 +6,7 @@ versions of libsodium instead of point releases.
 ## Cargo Features
 
 - `fetch-latest`: Download the latest stable version of libsodium
-- `optimized`: Build a version optimized for the current platform
+- `optimized`: Optimize for the native CPU - The resulting library will be faster but not portable
 - `minimal`: Do not build deprecated APIs
 - `use-pkg-config`: Force the use of pkg-config to find libsodium
 - `wasi-component`: Build as a WASI component exposing libsodium functions
