@@ -147,7 +147,9 @@ impl libsodium::Libsodium for Libsodium {
         }
     }
 
-    fn crypto_box_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    fn crypto_box_seed_keypair(
+        seed: Vec<u8>,
+    ) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
         crypto_impl::box_seed_keypair(&seed)
             .map(|(public_key, secret_key)| libsodium::KeyPair {
                 public_key,
@@ -199,10 +201,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::box_beforenm_bytes()
     }
 
-    fn crypto_box_beforenm(
-        pk: Vec<u8>,
-        sk: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn crypto_box_beforenm(pk: Vec<u8>, sk: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::box_beforenm(&pk, &sk).map_err(to_wai_error)
     }
 
@@ -304,10 +303,7 @@ impl libsodium::Libsodium for Libsodium {
             .map_err(to_wai_error)
     }
 
-    fn sign_sign(
-        message: Vec<u8>,
-        secret_key: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn sign_sign(message: Vec<u8>, secret_key: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::sign(&message, &secret_key).map_err(to_wai_error)
     }
 
@@ -353,7 +349,8 @@ impl libsodium::Libsodium for Libsodium {
         signature: Vec<u8>,
         public_key: Vec<u8>,
     ) -> Result<(), libsodium::CryptoError> {
-        crypto_impl::sign_state_final_verify(state_id, &signature, &public_key).map_err(to_wai_error)
+        crypto_impl::sign_state_final_verify(state_id, &signature, &public_key)
+            .map_err(to_wai_error)
     }
 
     fn sign_destroy(state_id: u64) {
@@ -412,10 +409,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::generichash_keygen()
     }
 
-    fn generichash_hash(
-        message: Vec<u8>,
-        out_len: u32,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn generichash_hash(message: Vec<u8>, out_len: u32) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::generichash(&message, out_len).map_err(to_wai_error)
     }
 
@@ -940,10 +934,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::pwhash_str(&password, opslimit, memlimit).map_err(to_wai_error)
     }
 
-    fn pwhash_str_verify(
-        hash: String,
-        password: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn pwhash_str_verify(hash: String, password: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::pwhash_str_verify(&hash, &password).map_err(to_wai_error)
     }
 
@@ -1009,8 +1000,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kdf_hkdf_sha256_key_bytes()
     }
 
-    fn kdf_hkdf_sha256_extract(salt: Vec<u8>, ikm: Vec<u8>) -> Vec<u8> {
-        crypto_impl::kdf_hkdf_sha256_extract(&salt, &ikm).unwrap()
+    fn kdf_hkdf_sha256_extract(
+        salt: Vec<u8>,
+        ikm: Vec<u8>,
+    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::kdf_hkdf_sha256_extract(&salt, &ikm).map_err(to_wai_error)
     }
 
     fn kdf_hkdf_sha256_expand(
@@ -1044,9 +1038,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kdf_hkdf_sha256_extract_update(state_id, &ikm).map_err(to_wai_error)
     }
 
-    fn kdf_hkdf_sha256_extract_final(
-        state_id: u64,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn kdf_hkdf_sha256_extract_final(state_id: u64) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::kdf_hkdf_sha256_extract_final(state_id).map_err(to_wai_error)
     }
 
@@ -1131,10 +1123,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::scalarmult_bytes()
     }
 
-    fn scalarmult_scalarmult(
-        n: Vec<u8>,
-        p: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn scalarmult_scalarmult(n: Vec<u8>, p: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::scalarmult(&n, &p).map_err(to_wai_error)
     }
 
@@ -1151,10 +1140,7 @@ impl libsodium::Libsodium for Libsodium {
         data
     }
 
-    fn utils_memcmp(
-        a: Vec<u8>,
-        b: Vec<u8>,
-    ) -> Result<bool, libsodium::CryptoError> {
+    fn utils_memcmp(a: Vec<u8>, b: Vec<u8>) -> Result<bool, libsodium::CryptoError> {
         crypto_impl::memcmp(&a, &b).map_err(to_wai_error)
     }
 
@@ -1163,18 +1149,12 @@ impl libsodium::Libsodium for Libsodium {
         data
     }
 
-    fn utils_add(
-        mut a: Vec<u8>,
-        b: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn utils_add(mut a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::add(&mut a, &b).map_err(to_wai_error)?;
         Ok(a)
     }
 
-    fn utils_sub(
-        mut a: Vec<u8>,
-        b: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn utils_sub(mut a: Vec<u8>, b: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::sub(&mut a, &b).map_err(to_wai_error)?;
         Ok(a)
     }
@@ -1245,17 +1225,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::base642bin_variant_ignore(&base64, encoding, &ignore).map_err(to_wai_error)
     }
 
-    fn utils_pad(
-        data: Vec<u8>,
-        block_size: u32,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn utils_pad(data: Vec<u8>, block_size: u32) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::pad(&data, block_size).map_err(to_wai_error)
     }
 
-    fn utils_unpad(
-        data: Vec<u8>,
-        block_size: u32,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn utils_unpad(data: Vec<u8>, block_size: u32) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::unpad(&data, block_size).map_err(to_wai_error)
     }
 
@@ -1275,10 +1249,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::shorthash_keygen()
     }
 
-    fn shorthash_hash(
-        message: Vec<u8>,
-        key: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn shorthash_hash(message: Vec<u8>, key: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::shorthash(&message, &key).map_err(to_wai_error)
     }
 
@@ -1313,10 +1284,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::onetimeauth_keygen()
     }
 
-    fn onetimeauth_auth(
-        message: Vec<u8>,
-        key: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn onetimeauth_auth(message: Vec<u8>, key: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::onetimeauth(&message, &key).map_err(to_wai_error)
     }
 
@@ -1441,9 +1409,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::secretstream_keygen()
     }
 
-    fn secret_stream_init_push(
-        key: Vec<u8>,
-    ) -> Result<(u64, Vec<u8>), libsodium::CryptoError> {
+    fn secret_stream_init_push(key: Vec<u8>) -> Result<(u64, Vec<u8>), libsodium::CryptoError> {
         crypto_impl::secretstream_init_push(&key).map_err(to_wai_error)
     }
 
@@ -1489,10 +1455,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::generichash_state_bytes()
     }
 
-    fn generichash_state_init(
-        out_len: u32,
-        key: Vec<u8>,
-    ) -> Result<u64, libsodium::CryptoError> {
+    fn generichash_state_init(out_len: u32, key: Vec<u8>) -> Result<u64, libsodium::CryptoError> {
         crypto_impl::generichash_state_init(out_len, &key).map_err(to_wai_error)
     }
 
@@ -1523,10 +1486,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::sha256_state_init().map_err(to_wai_error)
     }
 
-    fn sha256_state_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn sha256_state_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::sha256_state_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -1550,10 +1510,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::sha512_state_init().map_err(to_wai_error)
     }
 
-    fn sha512_state_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn sha512_state_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::sha512_state_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -1577,10 +1534,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::auth_state_init(&key).map_err(to_wai_error)
     }
 
-    fn auth_state_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn auth_state_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::auth_state_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -1730,17 +1684,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::ristretto255_is_valid_point(&p)
     }
 
-    fn ristretto255_add(
-        p: Vec<u8>,
-        q: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ristretto255_add(p: Vec<u8>, q: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ristretto255_add(&p, &q).map_err(to_wai_error)
     }
 
-    fn ristretto255_sub(
-        p: Vec<u8>,
-        q: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ristretto255_sub(p: Vec<u8>, q: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ristretto255_sub(&p, &q).map_err(to_wai_error)
     }
 
@@ -1812,17 +1760,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::ed25519_is_valid_point(&p)
     }
 
-    fn ed25519_add(
-        p: Vec<u8>,
-        q: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ed25519_add(p: Vec<u8>, q: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ed25519_add(&p, &q).map_err(to_wai_error)
     }
 
-    fn ed25519_sub(
-        p: Vec<u8>,
-        q: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ed25519_sub(p: Vec<u8>, q: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ed25519_sub(&p, &q).map_err(to_wai_error)
     }
 
@@ -1935,8 +1877,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kdf_hkdf_sha512_key_bytes()
     }
 
-    fn kdf_hkdf_sha512_extract(salt: Vec<u8>, ikm: Vec<u8>) -> Vec<u8> {
-        crypto_impl::kdf_hkdf_sha512_extract(&salt, &ikm).unwrap()
+    fn kdf_hkdf_sha512_extract(
+        salt: Vec<u8>,
+        ikm: Vec<u8>,
+    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::kdf_hkdf_sha512_extract(&salt, &ikm).map_err(to_wai_error)
     }
 
     fn kdf_hkdf_sha512_expand(
@@ -1970,9 +1915,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kdf_hkdf_sha512_extract_update(state_id, &ikm).map_err(to_wai_error)
     }
 
-    fn kdf_hkdf_sha512_extract_final(
-        state_id: u64,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn kdf_hkdf_sha512_extract_final(state_id: u64) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::kdf_hkdf_sha512_extract_final(state_id).map_err(to_wai_error)
     }
 
@@ -2229,10 +2172,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_shake128_init().map_err(to_wai_error)
     }
 
-    fn xof_shake128_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn xof_shake128_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::xof_shake128_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -2247,9 +2187,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_shake128_destroy(state_id)
     }
 
-    fn xof_shake128_init_with_domain(
-        domain_sep: u8,
-    ) -> Result<u64, libsodium::CryptoError> {
+    fn xof_shake128_init_with_domain(domain_sep: u8) -> Result<u64, libsodium::CryptoError> {
         crypto_impl::xof_shake128_init_with_domain(domain_sep).map_err(to_wai_error)
     }
 
@@ -2273,10 +2211,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_shake256_init().map_err(to_wai_error)
     }
 
-    fn xof_shake256_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn xof_shake256_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::xof_shake256_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -2291,9 +2226,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_shake256_destroy(state_id)
     }
 
-    fn xof_shake256_init_with_domain(
-        domain_sep: u8,
-    ) -> Result<u64, libsodium::CryptoError> {
+    fn xof_shake256_init_with_domain(domain_sep: u8) -> Result<u64, libsodium::CryptoError> {
         crypto_impl::xof_shake256_init_with_domain(domain_sep).map_err(to_wai_error)
     }
 
@@ -2335,9 +2268,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_turboshake128_destroy(state_id)
     }
 
-    fn xof_turboshake128_init_with_domain(
-        domain_sep: u8,
-    ) -> Result<u64, libsodium::CryptoError> {
+    fn xof_turboshake128_init_with_domain(domain_sep: u8) -> Result<u64, libsodium::CryptoError> {
         crypto_impl::xof_turboshake128_init_with_domain(domain_sep).map_err(to_wai_error)
     }
 
@@ -2375,9 +2306,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::xof_turboshake256_squeeze(state_id, out_len).map_err(to_wai_error)
     }
 
-    fn xof_turboshake256_init_with_domain(
-        domain_sep: u8,
-    ) -> Result<u64, libsodium::CryptoError> {
+    fn xof_turboshake256_init_with_domain(domain_sep: u8) -> Result<u64, libsodium::CryptoError> {
         crypto_impl::xof_turboshake256_init_with_domain(domain_sep).map_err(to_wai_error)
     }
 
@@ -2620,17 +2549,11 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::ipcrypt_keygen()
     }
 
-    fn ipcrypt_encrypt(
-        input: Vec<u8>,
-        key: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ipcrypt_encrypt(input: Vec<u8>, key: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ipcrypt_encrypt(&input, &key).map_err(to_wai_error)
     }
 
-    fn ipcrypt_decrypt(
-        input: Vec<u8>,
-        key: Vec<u8>,
-    ) -> Result<Vec<u8>, libsodium::CryptoError> {
+    fn ipcrypt_decrypt(input: Vec<u8>, key: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
         crypto_impl::ipcrypt_decrypt(&input, &key).map_err(to_wai_error)
     }
 
@@ -2773,10 +2696,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::auth_hmacsha256_state_init(&key).map_err(to_wai_error)
     }
 
-    fn auth_hmacsha256_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn auth_hmacsha256_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::auth_hmacsha256_state_update(state_id, &data).map_err(to_wai_error)
     }
 
@@ -2827,10 +2747,7 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::auth_hmacsha512_state_init(&key).map_err(to_wai_error)
     }
 
-    fn auth_hmacsha512_update(
-        state_id: u64,
-        data: Vec<u8>,
-    ) -> Result<(), libsodium::CryptoError> {
+    fn auth_hmacsha512_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
         crypto_impl::auth_hmacsha512_state_update(state_id, &data).map_err(to_wai_error)
     }
 

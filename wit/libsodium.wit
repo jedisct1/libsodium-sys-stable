@@ -577,7 +577,7 @@ interface kdf-hkdf-sha256 {
     keygen: func() -> list<u8>;
 
     /// Extract a PRK from input keying material
-    extract: func(salt: list<u8>, ikm: list<u8>) -> list<u8>;
+    extract: func(salt: list<u8>, ikm: list<u8>) -> result<list<u8>, crypto-error>;
 
     /// Initialize incremental extraction state
     extract-init: func(salt: list<u8>) -> result<u64, crypto-error>;
@@ -1176,7 +1176,7 @@ interface kdf-hkdf-sha512 {
     keygen: func() -> list<u8>;
 
     /// Extract a PRK from input keying material
-    extract: func(salt: list<u8>, ikm: list<u8>) -> list<u8>;
+    extract: func(salt: list<u8>, ikm: list<u8>) -> result<list<u8>, crypto-error>;
 
     /// Initialize incremental extraction state
     extract-init: func(salt: list<u8>) -> result<u64, crypto-error>;

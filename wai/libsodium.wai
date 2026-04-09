@@ -1,0 +1,1685 @@
+// libsodium cryptographic library - WAI interface for Wasmer
+// This provides safe wrappers around libsodium's functionality
+// Auto-generated from WIT definitions
+
+/// Result type for cryptographic operations
+variant crypto-error {
+    /// Operation failed (invalid input, verification failure, etc.)
+    operation-failed,
+    /// Invalid key size
+    invalid-key-size,
+    /// Invalid nonce size
+    invalid-nonce-size,
+    /// Message too long
+    message-too-long,
+    /// Decryption/verification failed
+    verification-failed,
+    /// Library not initialized
+    not-initialized,
+}
+
+/// Key pair for public-key cryptography
+record key-pair {
+    public-key: list<u8>,
+    secret-key: list<u8>,
+}
+
+/// Key pair for signing operations
+record sign-key-pair {
+    public-key: list<u8>,
+    secret-key: list<u8>,
+}
+
+/// Key pair for key exchange
+record kx-key-pair {
+    public-key: list<u8>,
+    secret-key: list<u8>,
+}
+
+/// Session keys from key exchange
+record session-keys {
+    rx: list<u8>,
+    tx: list<u8>,
+}
+
+// ============================================================================
+// Core - Library initialization and version information
+// ============================================================================
+
+/// Initialize the library. Must be called before any other function.
+/// Returns 0 on success, 1 if already initialized, -1 on failure.
+init: func() -> s32
+
+/// Get the library version string
+version-string: func() -> string
+
+/// Get the major version number
+library-version-major: func() -> s32
+
+/// Get the minor version number
+library-version-minor: func() -> s32
+
+// ============================================================================
+// Random - Secure random number generation
+// ============================================================================
+
+/// Generate random bytes
+random-bytes: func(len: u32) -> list<u8>
+
+/// Generate a random 32-bit unsigned integer
+random-u32: func() -> u32
+
+/// Generate a random 32-bit unsigned integer in range [0, upper_bound)
+random-uniform: func(upper-bound: u32) -> u32
+
+// ============================================================================
+// Secretbox - Secret-key authenticated encryption (XSalsa20-Poly1305)
+// ============================================================================
+
+/// Key size in bytes (32)
+secretbox-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+secretbox-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+secretbox-mac-bytes: func() -> u32
+
+/// Generate a random key
+secretbox-keygen: func() -> list<u8>
+
+/// Encrypt and authenticate a message
+/// Returns ciphertext (message + mac)
+secretbox-easy: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt and verify a message
+/// Returns plaintext on success
+secretbox-open-easy: func(ciphertext: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached authentication tag
+secretbox-detached: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached authentication tag
+secretbox-open-detached: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Crypto Box - Public-key authenticated encryption (X25519-XSalsa20-Poly1305)
+// ============================================================================
+
+/// Public key size in bytes (32)
+crypto-box-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (32)
+crypto-box-secret-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+crypto-box-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+crypto-box-mac-bytes: func() -> u32
+
+/// Seed size in bytes (32)
+crypto-box-seed-bytes: func() -> u32
+
+/// Precomputed shared key size in bytes (32)
+crypto-box-beforenm-bytes: func() -> u32
+
+/// Generate a random key pair
+crypto-box-keypair: func() -> key-pair
+
+/// Generate a key pair from a seed
+crypto-box-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+
+/// Encrypt and authenticate a message for a recipient
+crypto-box-easy: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt and verify a message from a sender
+crypto-box-open-easy: func(ciphertext: list<u8>, nonce: list<u8>, sender-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached authentication tag
+crypto-box-detached: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached authentication tag
+crypto-box-open-detached: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, sender-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Precompute a shared secret for efficiency
+crypto-box-beforenm: func(recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt using a precomputed shared secret
+crypto-box-easy-afternm: func(message: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt using a precomputed shared secret
+crypto-box-open-easy-afternm: func(ciphertext: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag using precomputed shared secret
+crypto-box-detached-afternm: func(message: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag using precomputed shared secret
+crypto-box-open-detached-afternm: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Seal - Anonymous public-key encryption (sealed boxes)
+// ============================================================================
+
+/// Additional bytes added to the ciphertext (48)
+seal-bytes: func() -> u32
+
+/// Encrypt a message anonymously for a recipient
+seal-seal: func(message: list<u8>, recipient-pk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt an anonymous message
+seal-open: func(ciphertext: list<u8>, recipient-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Sign - Public-key signatures (Ed25519)
+// ============================================================================
+
+/// Public key size in bytes (32)
+sign-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (64)
+sign-secret-key-bytes: func() -> u32
+
+/// Signature size in bytes (64)
+sign-signature-bytes: func() -> u32
+
+/// Seed size in bytes (32)
+sign-seed-bytes: func() -> u32
+
+/// State size in bytes for multi-part operations
+sign-state-bytes: func() -> u32
+
+/// Generate a random signing key pair
+sign-keypair: func() -> sign-key-pair
+
+/// Generate a signing key pair from a seed
+sign-seed-keypair: func(seed: list<u8>) -> expected<sign-key-pair, crypto-error>
+
+/// Sign a message (returns signature + message)
+sign-sign: func(message: list<u8>, secret-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify and extract a signed message
+sign-open: func(signed-message: list<u8>, public-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Create a detached signature
+sign-detached: func(message: list<u8>, secret-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify a detached signature
+sign-verify-detached: func(signature: list<u8>, message: list<u8>, public-key: list<u8>) -> expected<unit, crypto-error>
+
+/// Initialize multi-part signature state (Ed25519ph)
+/// Returns state-id
+sign-init: func() -> expected<u64, crypto-error>
+
+/// Update signature state with more data
+sign-update: func(state-id: u64, message: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and create signature from multi-part message
+sign-final-create: func(state-id: u64, secret-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Finalize and verify signature for multi-part message
+sign-final-verify: func(state-id: u64, signature: list<u8>, public-key: list<u8>) -> expected<unit, crypto-error>
+
+/// Destroy a signature state
+sign-destroy: func(state-id: u64)
+
+/// Extract the public key from a secret key
+sign-ed25519-sk-to-pk: func(secret-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Extract the seed from a secret key
+sign-ed25519-sk-to-seed: func(secret-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Convert Ed25519 public key to X25519
+sign-ed25519-pk-to-curve25519: func(ed25519-pk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Convert Ed25519 secret key to X25519
+sign-ed25519-sk-to-curve25519: func(ed25519-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Generichash - Generic hashing (BLAKE2b)
+// ============================================================================
+
+/// Default hash size in bytes (32)
+generichash-bytes: func() -> u32
+
+/// Minimum hash size (16)
+generichash-bytes-min: func() -> u32
+
+/// Maximum hash size (64)
+generichash-bytes-max: func() -> u32
+
+/// Default key size (32)
+generichash-key-bytes: func() -> u32
+
+/// Minimum key size (16)
+generichash-key-bytes-min: func() -> u32
+
+/// Maximum key size (64)
+generichash-key-bytes-max: func() -> u32
+
+/// Generate a random key
+generichash-keygen: func() -> list<u8>
+
+/// Hash a message without a key
+generichash-hash: func(message: list<u8>, out-len: u32) -> expected<list<u8>, crypto-error>
+
+/// Hash a message with a key
+generichash-hash-keyed: func(message: list<u8>, out-len: u32, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Sha256 - SHA-256 hashing
+// ============================================================================
+
+/// Hash size in bytes (32)
+sha256-bytes: func() -> u32
+
+/// Compute SHA-256 hash
+sha256-hash: func(message: list<u8>) -> list<u8>
+
+// ============================================================================
+// Sha512 - SHA-512 hashing
+// ============================================================================
+
+/// Hash size in bytes (64)
+sha512-bytes: func() -> u32
+
+/// Compute SHA-512 hash
+sha512-hash: func(message: list<u8>) -> list<u8>
+
+// ============================================================================
+// Auth - Secret-key authentication (HMAC-SHA512-256)
+// ============================================================================
+
+/// Authentication tag size in bytes (32)
+auth-bytes: func() -> u32
+
+/// Key size in bytes (32)
+auth-key-bytes: func() -> u32
+
+/// Generate a random key
+auth-keygen: func() -> list<u8>
+
+/// Compute an authentication tag
+auth-auth: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify an authentication tag
+auth-verify: func(tag: list<u8>, message: list<u8>, key: list<u8>) -> expected<unit, crypto-error>
+
+// ============================================================================
+// Aead Xchacha20Poly1305 - AEAD encryption (XChaCha20-Poly1305-IETF)
+// ============================================================================
+
+/// Key size in bytes (32)
+aead-xchacha20poly1305-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+aead-xchacha20poly1305-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+aead-xchacha20poly1305-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-xchacha20poly1305-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-xchacha20poly1305-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-xchacha20poly1305-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-xchacha20poly1305-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-xchacha20poly1305-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Aead Chacha20Poly1305 Ietf - AEAD encryption (ChaCha20-Poly1305-IETF)
+// ============================================================================
+
+/// Key size in bytes (32)
+aead-chacha20poly1305-ietf-key-bytes: func() -> u32
+
+/// Nonce size in bytes (12)
+aead-chacha20poly1305-ietf-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+aead-chacha20poly1305-ietf-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-chacha20poly1305-ietf-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-chacha20poly1305-ietf-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-chacha20poly1305-ietf-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-chacha20poly1305-ietf-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-chacha20poly1305-ietf-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Aead Chacha20Poly1305 - AEAD encryption (original ChaCha20-Poly1305)
+// ============================================================================
+
+/// Key size in bytes (32)
+aead-chacha20poly1305-key-bytes: func() -> u32
+
+/// Nonce size in bytes (8)
+aead-chacha20poly1305-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+aead-chacha20poly1305-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-chacha20poly1305-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-chacha20poly1305-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-chacha20poly1305-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-chacha20poly1305-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-chacha20poly1305-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Aead Aegis128L - AEAD encryption (AEGIS-128L)
+// ============================================================================
+
+/// Key size in bytes (16)
+aead-aegis128l-key-bytes: func() -> u32
+
+/// Nonce size in bytes (16)
+aead-aegis128l-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (32)
+aead-aegis128l-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-aegis128l-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-aegis128l-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-aegis128l-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-aegis128l-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-aegis128l-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Aead Aegis256 - AEAD encryption (AEGIS-256)
+// ============================================================================
+
+/// Key size in bytes (32)
+aead-aegis256-key-bytes: func() -> u32
+
+/// Nonce size in bytes (32)
+aead-aegis256-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (32)
+aead-aegis256-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-aegis256-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-aegis256-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-aegis256-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-aegis256-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-aegis256-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Pwhash - Password hashing (Argon2)
+// ============================================================================
+
+/// Salt size in bytes (16)
+pwhash-salt-bytes: func() -> u32
+
+/// Encoded hash string size (128)
+pwhash-str-bytes: func() -> u32
+
+/// Minimum output size (16)
+pwhash-bytes-min: func() -> u32
+
+/// Maximum output size
+pwhash-bytes-max: func() -> u32
+
+/// Minimum password length (0)
+pwhash-passwd-min: func() -> u32
+
+/// Maximum password length
+pwhash-passwd-max: func() -> u32
+
+/// Minimum ops limit
+pwhash-opslimit-min: func() -> u64
+
+/// Maximum ops limit
+pwhash-opslimit-max: func() -> u64
+
+/// Interactive ops limit (for online operations)
+pwhash-opslimit-interactive: func() -> u64
+
+/// Moderate ops limit
+pwhash-opslimit-moderate: func() -> u64
+
+/// Sensitive ops limit (for key derivation)
+pwhash-opslimit-sensitive: func() -> u64
+
+/// Minimum memory limit
+pwhash-memlimit-min: func() -> u64
+
+/// Maximum memory limit
+pwhash-memlimit-max: func() -> u64
+
+/// Interactive memory limit
+pwhash-memlimit-interactive: func() -> u64
+
+/// Moderate memory limit
+pwhash-memlimit-moderate: func() -> u64
+
+/// Sensitive memory limit
+pwhash-memlimit-sensitive: func() -> u64
+
+/// Algorithm: Argon2i 1.3
+pwhash-alg-argon2i13: func() -> s32
+
+/// Algorithm: Argon2id 1.3
+pwhash-alg-argon2id13: func() -> s32
+
+/// Default algorithm (Argon2id 1.3)
+pwhash-alg-default: func() -> s32
+
+/// Hash string prefix for algorithm identification
+pwhash-strprefix: func() -> string
+
+/// Derive a key from a password with algorithm selection
+pwhash-derive: func(out-len: u32, password: list<u8>, salt: list<u8>, opslimit: u64, memlimit: u64, alg: s32) -> expected<list<u8>, crypto-error>
+
+/// Hash a password to a string
+pwhash-str: func(password: list<u8>, opslimit: u64, memlimit: u64) -> expected<string, crypto-error>
+
+/// Verify a password against a hash string
+pwhash-str-verify: func(hash: string, password: list<u8>) -> expected<unit, crypto-error>
+
+/// Check if a hash needs rehashing
+pwhash-str-needs-rehash: func(hash: string, opslimit: u64, memlimit: u64) -> expected<bool, crypto-error>
+
+// ============================================================================
+// Kdf - Key derivation (BLAKE2b-based)
+// ============================================================================
+
+/// Key size in bytes (32)
+kdf-key-bytes: func() -> u32
+
+/// Context size in bytes (8)
+kdf-context-bytes: func() -> u32
+
+/// Minimum derived key size (16)
+kdf-bytes-min: func() -> u32
+
+/// Maximum derived key size (64)
+kdf-bytes-max: func() -> u32
+
+/// Primitive name ("blake2b")
+kdf-primitive: func() -> string
+
+/// Generate a master key
+kdf-keygen: func() -> list<u8>
+
+/// Derive a subkey from a master key
+kdf-derive-from-key: func(subkey-len: u32, subkey-id: u64, context: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kdf Hkdf Sha256 - HKDF-SHA256
+// ============================================================================
+
+/// Key size in bytes (32)
+kdf-hkdf-sha256-key-bytes: func() -> u32
+
+/// Minimum output size in bytes (0)
+kdf-hkdf-sha256-bytes-min: func() -> u32
+
+/// Maximum output size in bytes (255 * 32)
+kdf-hkdf-sha256-bytes-max: func() -> u32
+
+/// Generate a random key
+kdf-hkdf-sha256-keygen: func() -> list<u8>
+
+/// Extract a PRK from input keying material
+kdf-hkdf-sha256-extract: func(salt: list<u8>, ikm: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Initialize incremental extraction state
+kdf-hkdf-sha256-extract-init: func(salt: list<u8>) -> expected<u64, crypto-error>
+
+/// Update extraction state with input keying material
+kdf-hkdf-sha256-extract-update: func(state-id: u64, ikm: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize extraction and return PRK
+kdf-hkdf-sha256-extract-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Expand a PRK to derived keys
+kdf-hkdf-sha256-expand: func(out-len: u32, prk: list<u8>, info: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kx - Key exchange (X25519 + BLAKE2b)
+// ============================================================================
+
+/// Public key size in bytes (32)
+kx-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (32)
+kx-secret-key-bytes: func() -> u32
+
+/// Seed size in bytes (32)
+kx-seed-bytes: func() -> u32
+
+/// Session key size in bytes (32)
+kx-session-key-bytes: func() -> u32
+
+/// Primitive name ("x25519blake2b")
+kx-primitive: func() -> string
+
+/// Generate a key pair
+kx-keypair: func() -> kx-key-pair
+
+/// Generate a key pair from a seed
+kx-seed-keypair: func(seed: list<u8>) -> expected<kx-key-pair, crypto-error>
+
+/// Compute session keys for the client side
+kx-client-session-keys: func(client-pk: list<u8>, client-sk: list<u8>, server-pk: list<u8>) -> expected<session-keys, crypto-error>
+
+/// Compute session keys for the server side
+kx-server-session-keys: func(server-pk: list<u8>, server-sk: list<u8>, client-pk: list<u8>) -> expected<session-keys, crypto-error>
+
+// ============================================================================
+// Scalarmult - Scalar multiplication on Curve25519
+// ============================================================================
+
+/// Scalar size in bytes (32)
+scalarmult-scalar-bytes: func() -> u32
+
+/// Group element size in bytes (32)
+scalarmult-bytes: func() -> u32
+
+/// Compute q = n * p
+scalarmult-scalarmult: func(n: list<u8>, p: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute q = n * base point
+scalarmult-base: func(n: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Utils - Secure memory utilities
+// ============================================================================
+
+/// Securely zero memory
+utils-memzero: func(data: list<u8>) -> list<u8>
+
+/// Constant-time memory comparison
+utils-memcmp: func(a: list<u8>, b: list<u8>) -> expected<bool, crypto-error>
+
+/// Increment a byte array as a little-endian number
+utils-increment: func(data: list<u8>) -> list<u8>
+
+/// Add two byte arrays as little-endian numbers
+utils-add: func(a: list<u8>, b: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Subtract two byte arrays as little-endian numbers
+utils-sub: func(a: list<u8>, b: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compare two byte arrays as little-endian numbers
+utils-compare: func(a: list<u8>, b: list<u8>) -> s32
+
+/// Check if a byte array is all zeros
+utils-is-zero: func(data: list<u8>) -> bool
+
+/// Encode bytes to hexadecimal
+utils-bin2hex: func(data: list<u8>) -> string
+
+/// Decode hexadecimal to bytes
+utils-hex2bin: func(hex: string) -> expected<list<u8>, crypto-error>
+
+/// Decode hexadecimal to bytes, ignoring specified characters (e.g., ":" or " ")
+utils-hex2bin-ignore: func(hex: string, ignore: string) -> expected<list<u8>, crypto-error>
+
+/// Base64 variant: original with padding
+utils-base64-variant-original: func() -> u32
+
+/// Base64 variant: original without padding
+utils-base64-variant-original-no-padding: func() -> u32
+
+/// Base64 variant: URL-safe with padding
+utils-base64-variant-urlsafe: func() -> u32
+
+/// Base64 variant: URL-safe without padding
+utils-base64-variant-urlsafe-no-padding: func() -> u32
+
+/// Encode bytes to Base64 (original variant with padding)
+utils-bin2base64: func(data: list<u8>) -> string
+
+/// Encode bytes to Base64 with specified variant
+utils-bin2base64-variant: func(data: list<u8>, encoding: u32) -> string
+
+/// Decode Base64 to bytes (original variant)
+utils-base642bin: func(base64: string) -> expected<list<u8>, crypto-error>
+
+/// Decode Base64 to bytes with specified variant
+utils-base642bin-variant: func(base64: string, encoding: u32) -> expected<list<u8>, crypto-error>
+
+/// Decode Base64 to bytes with variant and ignore characters
+utils-base642bin-variant-ignore: func(base64: string, encoding: u32, ignore: string) -> expected<list<u8>, crypto-error>
+
+/// Add ISO/IEC 7816-4 padding to data
+utils-pad: func(data: list<u8>, block-size: u32) -> expected<list<u8>, crypto-error>
+
+/// Remove ISO/IEC 7816-4 padding from data
+utils-unpad: func(data: list<u8>, block-size: u32) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Shorthash - Short-input hashing (SipHash-2-4)
+// ============================================================================
+
+/// Hash size in bytes (8) for SipHash-2-4
+shorthash-bytes: func() -> u32
+
+/// Key size in bytes (16)
+shorthash-key-bytes: func() -> u32
+
+/// Hash size in bytes (16) for SipHashx-2-4 (128-bit variant)
+shorthash-siphashx24-bytes: func() -> u32
+
+/// Key size in bytes (16) for SipHashx-2-4
+shorthash-siphashx24-key-bytes: func() -> u32
+
+/// Generate a random key
+shorthash-keygen: func() -> list<u8>
+
+/// Compute a short hash (SipHash-2-4, 64-bit output)
+shorthash-hash: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute a short hash (SipHashx-2-4, 128-bit output)
+shorthash-hashx24: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Onetimeauth - One-time authentication (Poly1305)
+// ============================================================================
+
+/// Authentication tag size (16)
+onetimeauth-bytes: func() -> u32
+
+/// Key size (32)
+onetimeauth-key-bytes: func() -> u32
+
+/// Generate a random key
+onetimeauth-keygen: func() -> list<u8>
+
+/// Compute a one-time authentication tag
+onetimeauth-auth: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify a one-time authentication tag
+onetimeauth-verify: func(tag: list<u8>, message: list<u8>, key: list<u8>) -> expected<unit, crypto-error>
+
+// ============================================================================
+// Cipher Xsalsa20 - XSalsa20 stream cipher
+// ============================================================================
+
+/// Key size in bytes (32)
+cipher-xsalsa20-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+cipher-xsalsa20-nonce-bytes: func() -> u32
+
+/// Generate a random key
+cipher-xsalsa20-keygen: func() -> list<u8>
+
+/// Generate a keystream
+cipher-xsalsa20-keystream: func(len: u32, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream
+cipher-xsalsa20-xor: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Cipher Xchacha20 - XChaCha20 stream cipher
+// ============================================================================
+
+/// Key size in bytes (32)
+cipher-xchacha20-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+cipher-xchacha20-nonce-bytes: func() -> u32
+
+/// Generate a random key
+cipher-xchacha20-keygen: func() -> list<u8>
+
+/// Generate a keystream
+cipher-xchacha20-keystream: func(len: u32, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream
+cipher-xchacha20-xor: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream starting at initial counter
+cipher-xchacha20-xor-ic: func(message: list<u8>, nonce: list<u8>, ic: u64, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Secret Stream - Secret stream encryption (XChaCha20-Poly1305 streaming)
+// ============================================================================
+
+/// Key size in bytes (32)
+secret-stream-key-bytes: func() -> u32
+
+/// Header size in bytes (24)
+secret-stream-header-bytes: func() -> u32
+
+/// Authentication tag overhead (17)
+secret-stream-a-bytes: func() -> u32
+
+/// Maximum message size per chunk
+secret-stream-messagebytes-max: func() -> u64
+
+/// Message tag
+secret-stream-tag-message: func() -> u8
+
+/// Push tag (application-specific boundary)
+secret-stream-tag-push: func() -> u8
+
+/// Rekey tag
+secret-stream-tag-rekey: func() -> u8
+
+/// Final tag (end of stream)
+secret-stream-tag-final: func() -> u8
+
+/// Generate a random key
+secret-stream-keygen: func() -> list<u8>
+
+/// Initialize a push (encryption) stream
+/// Returns (state-id, header)
+secret-stream-init-push: func(key: list<u8>) -> expected<tuple<u64, list<u8>>, crypto-error>
+
+/// Push (encrypt) a message chunk with additional authenticated data
+/// Returns encrypted ciphertext
+secret-stream-push: func(state-id: u64, message: list<u8>, additional-data: list<u8>, tag: u8) -> expected<list<u8>, crypto-error>
+
+/// Initialize a pull (decryption) stream
+/// Returns state-id
+secret-stream-init-pull: func(header: list<u8>, key: list<u8>) -> expected<u64, crypto-error>
+
+/// Pull (decrypt) a message chunk with additional authenticated data
+/// Returns (plaintext, tag)
+secret-stream-pull: func(state-id: u64, ciphertext: list<u8>, additional-data: list<u8>) -> expected<tuple<list<u8>, u8>, crypto-error>
+
+/// Explicitly rekey a stream
+secret-stream-rekey: func(state-id: u64) -> expected<unit, crypto-error>
+
+/// Destroy a stream state
+secret-stream-destroy: func(state-id: u64)
+
+// ============================================================================
+// Generichash State - Streaming generic hash (BLAKE2b)
+// ============================================================================
+
+/// State size in bytes
+generichash-state-state-bytes: func() -> u32
+
+/// Initialize a hash state
+/// Returns state-id
+generichash-state-init: func(out-len: u32, key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update the hash state with more data
+generichash-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the hash
+generichash-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy a hash state
+generichash-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Sha256 State - Streaming SHA-256 hash
+// ============================================================================
+
+/// State size in bytes
+sha256-state-state-bytes: func() -> u32
+
+/// Initialize a hash state
+/// Returns state-id
+sha256-state-init: func() -> expected<u64, crypto-error>
+
+/// Update the hash state with more data
+sha256-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the hash
+sha256-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy a hash state
+sha256-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Sha512 State - Streaming SHA-512 hash
+// ============================================================================
+
+/// State size in bytes
+sha512-state-state-bytes: func() -> u32
+
+/// Initialize a hash state
+/// Returns state-id
+sha512-state-init: func() -> expected<u64, crypto-error>
+
+/// Update the hash state with more data
+sha512-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the hash
+sha512-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy a hash state
+sha512-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Auth State - Streaming authentication (HMAC-SHA512-256)
+// ============================================================================
+
+/// State size in bytes
+auth-state-state-bytes: func() -> u32
+
+/// Initialize an auth state
+/// Returns state-id
+auth-state-init: func(key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update the auth state with more data
+auth-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the authentication tag
+auth-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy an auth state
+auth-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Onetimeauth State - Streaming one-time authentication (Poly1305)
+// ============================================================================
+
+/// State size in bytes
+onetimeauth-state-state-bytes: func() -> u32
+
+/// Initialize an auth state
+/// Returns state-id
+onetimeauth-state-init: func(key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update the auth state with more data
+onetimeauth-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the authentication tag
+onetimeauth-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy an auth state
+onetimeauth-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Aead Aes256Gcm - AEAD encryption (AES-256-GCM)
+// ============================================================================
+
+/// Check if AES-256-GCM is available on this CPU
+aead-aes256gcm-is-available: func() -> bool
+
+/// Key size in bytes (32)
+aead-aes256gcm-key-bytes: func() -> u32
+
+/// Nonce size in bytes (12)
+aead-aes256gcm-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+aead-aes256gcm-a-bytes: func() -> u32
+
+/// Generate a random key
+aead-aes256gcm-keygen: func() -> list<u8>
+
+/// Encrypt with additional data
+aead-aes256gcm-encrypt: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt with additional data
+aead-aes256gcm-decrypt: func(ciphertext: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag
+aead-aes256gcm-encrypt-detached: func(message: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag
+aead-aes256gcm-decrypt-detached: func(ciphertext: list<u8>, mac: list<u8>, additional-data: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Verify - Constant-time byte comparison
+// ============================================================================
+
+/// Compare two 16-byte arrays in constant time
+verify-verify16: func(x: list<u8>, y: list<u8>) -> bool
+
+/// Compare two 32-byte arrays in constant time
+verify-verify32: func(x: list<u8>, y: list<u8>) -> bool
+
+/// Compare two 64-byte arrays in constant time
+verify-verify64: func(x: list<u8>, y: list<u8>) -> bool
+
+// ============================================================================
+// Ristretto255 - Ristretto255 group operations
+// ============================================================================
+
+/// Group element size in bytes (32)
+ristretto255-bytes: func() -> u32
+
+/// Hash input size for point derivation (64)
+ristretto255-hash-bytes: func() -> u32
+
+/// Scalar size in bytes (32)
+ristretto255-scalar-bytes: func() -> u32
+
+/// Non-reduced scalar size (64)
+ristretto255-non-reduced-scalar-bytes: func() -> u32
+
+/// Check if a point is valid
+ristretto255-is-valid-point: func(p: list<u8>) -> bool
+
+/// Add two points
+ristretto255-add: func(p: list<u8>, q: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Subtract two points
+ristretto255-sub: func(p: list<u8>, q: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Derive a point from a 64-byte hash
+ristretto255-from-hash: func(h: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Generate a random point
+ristretto255-random: func() -> list<u8>
+
+/// Generate a random scalar
+ristretto255-scalar-random: func() -> list<u8>
+
+/// Compute the multiplicative inverse of a scalar
+ristretto255-scalar-invert: func(s: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Negate a scalar
+ristretto255-scalar-negate: func(s: list<u8>) -> list<u8>
+
+/// Compute the complement of a scalar (L - s)
+ristretto255-scalar-complement: func(s: list<u8>) -> list<u8>
+
+/// Add two scalars
+ristretto255-scalar-add: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Subtract two scalars
+ristretto255-scalar-sub: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Multiply two scalars
+ristretto255-scalar-mul: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Reduce a 64-byte value to a scalar
+ristretto255-scalar-reduce: func(s: list<u8>) -> list<u8>
+
+// ============================================================================
+// Ed25519 - Ed25519 group operations (low-level)
+// ============================================================================
+
+/// Point size in bytes (32)
+ed25519-bytes: func() -> u32
+
+/// Uniform bytes for point derivation (32)
+ed25519-uniform-bytes: func() -> u32
+
+/// Hash input size for point derivation (64)
+ed25519-hash-bytes: func() -> u32
+
+/// Scalar size in bytes (32)
+ed25519-scalar-bytes: func() -> u32
+
+/// Non-reduced scalar size (64)
+ed25519-non-reduced-scalar-bytes: func() -> u32
+
+/// Check if a point is valid
+ed25519-is-valid-point: func(p: list<u8>) -> bool
+
+/// Add two points
+ed25519-add: func(p: list<u8>, q: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Subtract two points
+ed25519-sub: func(p: list<u8>, q: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Derive a point from 32 uniform bytes
+ed25519-from-uniform: func(u: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Derive a point from a 64-byte hash
+ed25519-from-hash: func(h: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Generate a random point
+ed25519-random: func() -> list<u8>
+
+/// Generate a random scalar
+ed25519-scalar-random: func() -> list<u8>
+
+/// Compute the multiplicative inverse of a scalar
+ed25519-scalar-invert: func(s: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Negate a scalar
+ed25519-scalar-negate: func(s: list<u8>) -> list<u8>
+
+/// Compute the complement of a scalar
+ed25519-scalar-complement: func(s: list<u8>) -> list<u8>
+
+/// Add two scalars
+ed25519-scalar-add: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Subtract two scalars
+ed25519-scalar-sub: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Multiply two scalars
+ed25519-scalar-mul: func(x: list<u8>, y: list<u8>) -> list<u8>
+
+/// Reduce a 64-byte value to a scalar
+ed25519-scalar-reduce: func(s: list<u8>) -> list<u8>
+
+// ============================================================================
+// Scalarmult Ed25519 - Scalar multiplication on Ed25519
+// ============================================================================
+
+/// Result size in bytes (32)
+scalarmult-ed25519-bytes: func() -> u32
+
+/// Scalar size in bytes (32)
+scalarmult-ed25519-scalar-bytes: func() -> u32
+
+/// Compute q = n * p (with clamping)
+scalarmult-ed25519-scalarmult: func(n: list<u8>, p: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute q = n * p (without clamping)
+scalarmult-ed25519-scalarmult-noclamp: func(n: list<u8>, p: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute q = n * base (with clamping)
+scalarmult-ed25519-base: func(n: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute q = n * base (without clamping)
+scalarmult-ed25519-base-noclamp: func(n: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Scalarmult Ristretto255 - Scalar multiplication on Ristretto255
+// ============================================================================
+
+/// Result size in bytes (32)
+scalarmult-ristretto255-bytes: func() -> u32
+
+/// Scalar size in bytes (32)
+scalarmult-ristretto255-scalar-bytes: func() -> u32
+
+/// Compute q = n * p
+scalarmult-ristretto255-scalarmult: func(n: list<u8>, p: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Compute q = n * base
+scalarmult-ristretto255-base: func(n: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kdf Hkdf Sha512 - HKDF-SHA512
+// ============================================================================
+
+/// Key size in bytes (64)
+kdf-hkdf-sha512-key-bytes: func() -> u32
+
+/// Minimum output size in bytes (0)
+kdf-hkdf-sha512-bytes-min: func() -> u32
+
+/// Maximum output size in bytes (255 * 64)
+kdf-hkdf-sha512-bytes-max: func() -> u32
+
+/// Generate a random key
+kdf-hkdf-sha512-keygen: func() -> list<u8>
+
+/// Extract a PRK from input keying material
+kdf-hkdf-sha512-extract: func(salt: list<u8>, ikm: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Initialize incremental extraction state
+kdf-hkdf-sha512-extract-init: func(salt: list<u8>) -> expected<u64, crypto-error>
+
+/// Update extraction state with input keying material
+kdf-hkdf-sha512-extract-update: func(state-id: u64, ikm: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize extraction and return PRK
+kdf-hkdf-sha512-extract-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Expand a PRK to derived keys
+kdf-hkdf-sha512-expand: func(out-len: u32, prk: list<u8>, info: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Pwhash Scrypt - Password hashing (scrypt)
+// ============================================================================
+
+/// Salt size in bytes (32)
+pwhash-scrypt-salt-bytes: func() -> u32
+
+/// Encoded hash string size (102)
+pwhash-scrypt-str-bytes: func() -> u32
+
+/// Minimum output size in bytes (16)
+pwhash-scrypt-bytes-min: func() -> u32
+
+/// Maximum output size in bytes
+pwhash-scrypt-bytes-max: func() -> u32
+
+/// Minimum password length (0)
+pwhash-scrypt-passwd-min: func() -> u32
+
+/// Maximum password length
+pwhash-scrypt-passwd-max: func() -> u32
+
+/// Minimum ops limit
+pwhash-scrypt-opslimit-min: func() -> u64
+
+/// Maximum ops limit
+pwhash-scrypt-opslimit-max: func() -> u64
+
+/// Interactive ops limit
+pwhash-scrypt-opslimit-interactive: func() -> u64
+
+/// Sensitive ops limit
+pwhash-scrypt-opslimit-sensitive: func() -> u64
+
+/// Minimum memory limit
+pwhash-scrypt-memlimit-min: func() -> u64
+
+/// Maximum memory limit
+pwhash-scrypt-memlimit-max: func() -> u64
+
+/// Interactive memory limit
+pwhash-scrypt-memlimit-interactive: func() -> u64
+
+/// Sensitive memory limit
+pwhash-scrypt-memlimit-sensitive: func() -> u64
+
+/// Hash string prefix for algorithm identification
+pwhash-scrypt-strprefix: func() -> string
+
+/// Derive a key from a password
+pwhash-scrypt-derive: func(out-len: u32, password: list<u8>, salt: list<u8>, opslimit: u64, memlimit: u64) -> expected<list<u8>, crypto-error>
+
+/// Derive a key using low-level N/r/p parameters (for interoperability)
+pwhash-scrypt-derive-ll: func(out-len: u32, password: list<u8>, salt: list<u8>, n: u64, r: u32, p: u32) -> expected<list<u8>, crypto-error>
+
+/// Hash a password to a string
+pwhash-scrypt-str: func(password: list<u8>, opslimit: u64, memlimit: u64) -> expected<string, crypto-error>
+
+/// Verify a password against a hash string
+pwhash-scrypt-str-verify: func(hash: string, password: list<u8>) -> expected<unit, crypto-error>
+
+/// Check if a hash needs rehashing
+pwhash-scrypt-str-needs-rehash: func(hash: string, opslimit: u64, memlimit: u64) -> expected<bool, crypto-error>
+
+// ============================================================================
+// Cipher Salsa20 - Salsa20 stream cipher
+// ============================================================================
+
+/// Key size in bytes (32)
+cipher-salsa20-key-bytes: func() -> u32
+
+/// Nonce size in bytes (8)
+cipher-salsa20-nonce-bytes: func() -> u32
+
+/// Generate a random key
+cipher-salsa20-keygen: func() -> list<u8>
+
+/// Generate a keystream
+cipher-salsa20-keystream: func(len: u32, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream
+cipher-salsa20-xor: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream starting at a given block counter
+cipher-salsa20-xor-ic: func(message: list<u8>, nonce: list<u8>, ic: u64, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Cipher Chacha20 - ChaCha20 stream cipher
+// ============================================================================
+
+/// Key size in bytes (32)
+cipher-chacha20-key-bytes: func() -> u32
+
+/// Nonce size in bytes (8)
+cipher-chacha20-nonce-bytes: func() -> u32
+
+/// Generate a random key
+cipher-chacha20-keygen: func() -> list<u8>
+
+/// Generate a keystream
+cipher-chacha20-keystream: func(len: u32, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream
+cipher-chacha20-xor: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream starting at a given block counter
+cipher-chacha20-xor-ic: func(message: list<u8>, nonce: list<u8>, ic: u64, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Cipher Chacha20 Ietf - ChaCha20-IETF stream cipher (96-bit nonce)
+// ============================================================================
+
+/// Key size in bytes (32)
+cipher-chacha20-ietf-key-bytes: func() -> u32
+
+/// Nonce size in bytes (12)
+cipher-chacha20-ietf-nonce-bytes: func() -> u32
+
+/// Generate a random key
+cipher-chacha20-ietf-keygen: func() -> list<u8>
+
+/// Generate a keystream
+cipher-chacha20-ietf-keystream: func(len: u32, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream
+cipher-chacha20-ietf-xor: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// XOR a message with a keystream starting at a given block counter
+cipher-chacha20-ietf-xor-ic: func(message: list<u8>, nonce: list<u8>, ic: u32, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Xof Shake128 - SHAKE128 extendable output function (XOF)
+// ============================================================================
+
+/// Block size in bytes (168)
+xof-shake128-block-bytes: func() -> u32
+
+/// State size in bytes (256)
+xof-shake128-state-bytes: func() -> u32
+
+/// One-shot hash with arbitrary output length
+xof-shake128-hash: func(out-len: u32, message: list<u8>) -> list<u8>
+
+/// Initialize streaming state
+xof-shake128-init: func() -> expected<u64, crypto-error>
+
+/// Initialize streaming state with domain separator (0x01-0x7F)
+xof-shake128-init-with-domain: func(domain: u8) -> expected<u64, crypto-error>
+
+/// Update state with more data
+xof-shake128-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Squeeze output bytes from state
+xof-shake128-squeeze: func(state-id: u64, out-len: u32) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+xof-shake128-destroy: func(state-id: u64)
+
+// ============================================================================
+// Xof Shake256 - SHAKE256 extendable output function (XOF)
+// ============================================================================
+
+/// Block size in bytes (136)
+xof-shake256-block-bytes: func() -> u32
+
+/// State size in bytes (256)
+xof-shake256-state-bytes: func() -> u32
+
+/// One-shot hash with arbitrary output length
+xof-shake256-hash: func(out-len: u32, message: list<u8>) -> list<u8>
+
+/// Initialize streaming state
+xof-shake256-init: func() -> expected<u64, crypto-error>
+
+/// Initialize streaming state with domain separator (0x01-0x7F)
+xof-shake256-init-with-domain: func(domain: u8) -> expected<u64, crypto-error>
+
+/// Update state with more data
+xof-shake256-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Squeeze output bytes from state
+xof-shake256-squeeze: func(state-id: u64, out-len: u32) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+xof-shake256-destroy: func(state-id: u64)
+
+// ============================================================================
+// Xof Turboshake128 - TurboSHAKE128 extendable output function
+// ============================================================================
+
+/// Block size in bytes (168)
+xof-turboshake128-block-bytes: func() -> u32
+
+/// State size in bytes (256)
+xof-turboshake128-state-bytes: func() -> u32
+
+/// One-shot hash with arbitrary output length
+xof-turboshake128-hash: func(out-len: u32, message: list<u8>) -> list<u8>
+
+/// Initialize streaming state
+xof-turboshake128-init: func() -> expected<u64, crypto-error>
+
+/// Initialize streaming state with domain separator (0x01-0x7F)
+xof-turboshake128-init-with-domain: func(domain: u8) -> expected<u64, crypto-error>
+
+/// Update state with more data
+xof-turboshake128-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Squeeze output bytes from state
+xof-turboshake128-squeeze: func(state-id: u64, out-len: u32) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+xof-turboshake128-destroy: func(state-id: u64)
+
+// ============================================================================
+// Xof Turboshake256 - TurboSHAKE256 extendable output function
+// ============================================================================
+
+/// Block size in bytes (136)
+xof-turboshake256-block-bytes: func() -> u32
+
+/// State size in bytes (256)
+xof-turboshake256-state-bytes: func() -> u32
+
+/// One-shot hash with arbitrary output length
+xof-turboshake256-hash: func(out-len: u32, message: list<u8>) -> list<u8>
+
+/// Initialize streaming state
+xof-turboshake256-init: func() -> expected<u64, crypto-error>
+
+/// Initialize streaming state with domain separator (0x01-0x7F)
+xof-turboshake256-init-with-domain: func(domain: u8) -> expected<u64, crypto-error>
+
+/// Update state with more data
+xof-turboshake256-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Squeeze output bytes from state
+xof-turboshake256-squeeze: func(state-id: u64, out-len: u32) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+xof-turboshake256-destroy: func(state-id: u64)
+
+// ============================================================================
+// Secretbox Xchacha20Poly1305 - Secret-key encryption with XChaCha20-Poly1305
+// ============================================================================
+
+/// Key size in bytes (32)
+secretbox-xchacha20poly1305-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+secretbox-xchacha20poly1305-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+secretbox-xchacha20poly1305-mac-bytes: func() -> u32
+
+/// Generate a random key
+secretbox-xchacha20poly1305-keygen: func() -> list<u8>
+
+/// Encrypt and authenticate a message
+secretbox-xchacha20poly1305-easy: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt and verify a message
+secretbox-xchacha20poly1305-open-easy: func(ciphertext: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached authentication tag
+secretbox-xchacha20poly1305-detached: func(message: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached authentication tag
+secretbox-xchacha20poly1305-open-detached: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Crypto Box Xchacha20Poly1305 - Public-key encryption with X25519-XChaCha20-Poly1305
+// ============================================================================
+
+/// Public key size in bytes (32)
+crypto-box-xchacha20poly1305-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (32)
+crypto-box-xchacha20poly1305-secret-key-bytes: func() -> u32
+
+/// Nonce size in bytes (24)
+crypto-box-xchacha20poly1305-nonce-bytes: func() -> u32
+
+/// Authentication tag size in bytes (16)
+crypto-box-xchacha20poly1305-mac-bytes: func() -> u32
+
+/// Seed size in bytes (32)
+crypto-box-xchacha20poly1305-seed-bytes: func() -> u32
+
+/// Additional bytes for sealed boxes (48)
+crypto-box-xchacha20poly1305-seal-bytes: func() -> u32
+
+/// Precomputed shared key size in bytes (32)
+crypto-box-xchacha20poly1305-beforenm-bytes: func() -> u32
+
+/// Generate a random key pair
+crypto-box-xchacha20poly1305-keypair: func() -> key-pair
+
+/// Generate a key pair from a seed
+crypto-box-xchacha20poly1305-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+
+/// Encrypt and authenticate a message
+crypto-box-xchacha20poly1305-easy: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt and verify a message
+crypto-box-xchacha20poly1305-open-easy: func(ciphertext: list<u8>, nonce: list<u8>, sender-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached authentication tag
+crypto-box-xchacha20poly1305-detached: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached authentication tag
+crypto-box-xchacha20poly1305-open-detached: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, sender-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Precompute a shared secret
+crypto-box-xchacha20poly1305-beforenm: func(recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt using a precomputed shared secret
+crypto-box-xchacha20poly1305-easy-afternm: func(message: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Decrypt using a precomputed shared secret
+crypto-box-xchacha20poly1305-open-easy-afternm: func(ciphertext: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Encrypt with detached tag using precomputed shared secret
+crypto-box-xchacha20poly1305-detached-afternm: func(message: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decrypt with detached tag using precomputed shared secret
+crypto-box-xchacha20poly1305-open-detached-afternm: func(ciphertext: list<u8>, mac: list<u8>, nonce: list<u8>, shared-key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Anonymous encryption (sealed box)
+crypto-box-xchacha20poly1305-seal: func(message: list<u8>, recipient-pk: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Anonymous decryption (sealed box)
+crypto-box-xchacha20poly1305-seal-open: func(ciphertext: list<u8>, recipient-pk: list<u8>, recipient-sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Ipcrypt - IP address encryption
+// ============================================================================
+
+/// Convert IP address string to 16-byte binary representation
+/// Accepts IPv4 and IPv6 addresses; IPv4 is stored as IPv4-mapped IPv6
+ipcrypt-ip2bin: func(ip: string) -> expected<list<u8>, crypto-error>
+
+/// Convert 16-byte binary address to string representation
+ipcrypt-bin2ip: func(bin: list<u8>) -> expected<string, crypto-error>
+
+/// Block size in bytes (16)
+ipcrypt-bytes: func() -> u32
+
+/// Key size in bytes (16)
+ipcrypt-key-bytes: func() -> u32
+
+/// Generate a random 16-byte key for deterministic mode
+ipcrypt-keygen: func() -> list<u8>
+
+/// Deterministic encrypt: same input always produces same output
+ipcrypt-encrypt: func(input: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Deterministic decrypt
+ipcrypt-decrypt: func(input: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// ND key size in bytes (16)
+ipcrypt-nd-key-bytes: func() -> u32
+
+/// ND tweak size in bytes (8)
+ipcrypt-nd-tweak-bytes: func() -> u32
+
+/// ND input size in bytes (16)
+ipcrypt-nd-input-bytes: func() -> u32
+
+/// ND output size in bytes (24 = 8-byte tweak + 16-byte ciphertext)
+ipcrypt-nd-output-bytes: func() -> u32
+
+/// ND encrypt: different output each time; tweak prepended to ciphertext
+ipcrypt-nd-encrypt: func(input: list<u8>, tweak: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// ND decrypt: extracts tweak from ciphertext automatically
+ipcrypt-nd-decrypt: func(ciphertext: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// NDX key size in bytes (32)
+ipcrypt-ndx-key-bytes: func() -> u32
+
+/// NDX tweak size in bytes (16)
+ipcrypt-ndx-tweak-bytes: func() -> u32
+
+/// NDX input size in bytes (16)
+ipcrypt-ndx-input-bytes: func() -> u32
+
+/// NDX output size in bytes (32)
+ipcrypt-ndx-output-bytes: func() -> u32
+
+/// Generate a random 32-byte key for NDX mode
+ipcrypt-ndx-keygen: func() -> list<u8>
+
+/// NDX encrypt: maximum security with 16-byte tweak
+ipcrypt-ndx-encrypt: func(input: list<u8>, tweak: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// NDX decrypt
+ipcrypt-ndx-decrypt: func(ciphertext: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// PFX key size in bytes (32)
+ipcrypt-pfx-key-bytes: func() -> u32
+
+/// PFX block size in bytes (16)
+ipcrypt-pfx-bytes: func() -> u32
+
+/// Generate a random 32-byte key for PFX mode
+ipcrypt-pfx-keygen: func() -> list<u8>
+
+/// PFX encrypt: preserves network prefix relationships
+ipcrypt-pfx-encrypt: func(input: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// PFX decrypt
+ipcrypt-pfx-decrypt: func(input: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Auth Hmacsha256 - HMAC-SHA256 authentication
+// ============================================================================
+
+/// Authentication tag size in bytes (32)
+auth-hmacsha256-bytes: func() -> u32
+
+/// Key size in bytes (32)
+auth-hmacsha256-key-bytes: func() -> u32
+
+/// Generate a random key
+auth-hmacsha256-keygen: func() -> list<u8>
+
+/// Compute an authentication tag
+auth-hmacsha256-auth: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify an authentication tag
+auth-hmacsha256-verify: func(tag: list<u8>, message: list<u8>, key: list<u8>) -> expected<unit, crypto-error>
+
+/// State size in bytes
+auth-hmacsha256-state-bytes: func() -> u32
+
+/// Initialize streaming state
+auth-hmacsha256-init: func(key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update state with more data
+auth-hmacsha256-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the authentication tag
+auth-hmacsha256-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+auth-hmacsha256-destroy: func(state-id: u64)
+
+// ============================================================================
+// Auth Hmacsha512 - HMAC-SHA512 authentication
+// ============================================================================
+
+/// Authentication tag size in bytes (64)
+auth-hmacsha512-bytes: func() -> u32
+
+/// Key size in bytes (32)
+auth-hmacsha512-key-bytes: func() -> u32
+
+/// Generate a random key
+auth-hmacsha512-keygen: func() -> list<u8>
+
+/// Compute an authentication tag
+auth-hmacsha512-auth: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify an authentication tag
+auth-hmacsha512-verify: func(tag: list<u8>, message: list<u8>, key: list<u8>) -> expected<unit, crypto-error>
+
+/// State size in bytes
+auth-hmacsha512-state-bytes: func() -> u32
+
+/// Initialize streaming state
+auth-hmacsha512-init: func(key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update state with more data
+auth-hmacsha512-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the authentication tag
+auth-hmacsha512-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+auth-hmacsha512-destroy: func(state-id: u64)
+
+// ============================================================================
+// Auth Hmacsha512256 - HMAC-SHA-512-256 authentication
+// ============================================================================
+
+/// Authentication tag size in bytes (32)
+auth-hmacsha512256-bytes: func() -> u32
+
+/// Key size in bytes (32)
+auth-hmacsha512256-key-bytes: func() -> u32
+
+/// Generate a random key
+auth-hmacsha512256-keygen: func() -> list<u8>
+
+/// Compute an authentication tag
+auth-hmacsha512256-auth: func(message: list<u8>, key: list<u8>) -> expected<list<u8>, crypto-error>
+
+/// Verify an authentication tag
+auth-hmacsha512256-verify: func(tag: list<u8>, message: list<u8>, key: list<u8>) -> expected<unit, crypto-error>
+
+/// State size in bytes
+auth-hmacsha512256-state-bytes: func() -> u32
+
+/// Initialize streaming state
+auth-hmacsha512256-init: func(key: list<u8>) -> expected<u64, crypto-error>
+
+/// Update state with more data
+auth-hmacsha512256-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the authentication tag
+auth-hmacsha512256-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy state
+auth-hmacsha512256-destroy: func(state-id: u64)
+
+// ============================================================================
+// Random Extended - Extended random functions
+// ============================================================================
+
+/// Seed size for deterministic random (32)
+random-extended-seed-bytes: func() -> u32
+
+/// Generate deterministic random bytes from a seed (validates seed length)
+random-extended-buf-deterministic: func(len: u32, seed: list<u8>) -> expected<list<u8>, crypto-error>

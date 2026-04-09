@@ -1082,9 +1082,11 @@ impl exports::libsodium::crypto::kdf_hkdf_sha256::Guest for Component {
         crypto_impl::kdf_hkdf_sha256_key_bytes()
     }
 
-    fn extract(salt: Vec<u8>, ikm: Vec<u8>) -> Vec<u8> {
-        // extract cannot fail, so unwrap is safe here
-        crypto_impl::kdf_hkdf_sha256_extract(&salt, &ikm).unwrap()
+    fn extract(
+        salt: Vec<u8>,
+        ikm: Vec<u8>,
+    ) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kdf_hkdf_sha256_extract(&salt, &ikm).map_err(to_wit_error)
     }
 
     fn expand(
@@ -2068,9 +2070,11 @@ impl exports::libsodium::crypto::kdf_hkdf_sha512::Guest for Component {
         crypto_impl::kdf_hkdf_sha512_key_bytes()
     }
 
-    fn extract(salt: Vec<u8>, ikm: Vec<u8>) -> Vec<u8> {
-        // extract cannot fail, so unwrap is safe here
-        crypto_impl::kdf_hkdf_sha512_extract(&salt, &ikm).unwrap()
+    fn extract(
+        salt: Vec<u8>,
+        ikm: Vec<u8>,
+    ) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kdf_hkdf_sha512_extract(&salt, &ikm).map_err(to_wit_error)
     }
 
     fn expand(

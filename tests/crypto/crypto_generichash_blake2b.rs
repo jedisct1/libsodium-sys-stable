@@ -2,6 +2,11 @@
 
 use libsodium_sys::*;
 
+const EXPECTED_GENERICHASH_BLAKE2B_64_ZEROES: [u8; crypto_generichash_blake2b_BYTES as usize] = [
+    0x14, 0xa7, 0xcf, 0x66, 0x1b, 0xae, 0x90, 0x65, 0xe3, 0xee, 0x20, 0x9e, 0xb5, 0x7f, 0xca, 0x64,
+    0x64, 0x60, 0xeb, 0x72, 0xb4, 0xea, 0xcd, 0x9a, 0x15, 0x10, 0x8c, 0x2c, 0x5c, 0xd2, 0x15, 0x4b,
+];
+
 #[test]
 fn test_crypto_generichash_blake2b_state_alignment() {
     // this asserts the alignment applied that was broken with old
@@ -92,6 +97,7 @@ fn test_crypto_generichash_blake2b() {
         },
         0
     );
+    assert_eq!(out, EXPECTED_GENERICHASH_BLAKE2B_64_ZEROES);
 }
 
 #[test]
@@ -117,4 +123,5 @@ fn test_crypto_generichash_blake2b_salt_personal() {
         },
         0
     );
+    assert_eq!(out, EXPECTED_GENERICHASH_BLAKE2B_64_ZEROES);
 }
