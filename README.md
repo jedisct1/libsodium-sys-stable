@@ -68,7 +68,7 @@ The `wasi-component` feature enables building libsodium as a WASI component. Thi
 cargo build --target wasm32-wasip2 --features wasi-component
 ```
 
-The WIT interface is defined in `wit/libsodium.wit` (package `libsodium:crypto@1.0.21`) and exposes the same comprehensive API as the WAI interface, organized into separate interfaces for each cryptographic primitive.
+The WIT interface is defined in `wit/libsodium.wit` (package `libsodium:crypto@1.0.22`) and exposes the same comprehensive API as the WAI interface, organized into separate interfaces for each cryptographic primitive.
 
 ### Wasmer WAI Support
 

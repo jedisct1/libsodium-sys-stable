@@ -505,6 +505,34 @@ impl exports::libsodium::crypto::sha512::Guest for Component {
 }
 
 // ============================================================================
+// SHA-3-256
+// ============================================================================
+
+impl exports::libsodium::crypto::sha3256::Guest for Component {
+    fn bytes() -> u32 {
+        crypto_impl::sha3_256_bytes()
+    }
+
+    fn hash(message: Vec<u8>) -> Vec<u8> {
+        crypto_impl::sha3_256(&message)
+    }
+}
+
+// ============================================================================
+// SHA-3-512
+// ============================================================================
+
+impl exports::libsodium::crypto::sha3512::Guest for Component {
+    fn bytes() -> u32 {
+        crypto_impl::sha3_512_bytes()
+    }
+
+    fn hash(message: Vec<u8>) -> Vec<u8> {
+        crypto_impl::sha3_512(&message)
+    }
+}
+
+// ============================================================================
 // Auth
 // ============================================================================
 
@@ -1128,6 +1156,199 @@ impl exports::libsodium::crypto::kdf_hkdf_sha256::Guest for Component {
 }
 
 // ============================================================================
+// KEM X-Wing
+// ============================================================================
+
+impl exports::libsodium::crypto::kem_xwing::Guest for Component {
+    fn public_key_bytes() -> u32 {
+        crypto_impl::kem_xwing_public_key_bytes()
+    }
+
+    fn secret_key_bytes() -> u32 {
+        crypto_impl::kem_xwing_secret_key_bytes()
+    }
+
+    fn ciphertext_bytes() -> u32 {
+        crypto_impl::kem_xwing_ciphertext_bytes()
+    }
+
+    fn shared_secret_bytes() -> u32 {
+        crypto_impl::kem_xwing_shared_secret_bytes()
+    }
+
+    fn seed_bytes() -> u32 {
+        crypto_impl::kem_xwing_seed_bytes()
+    }
+
+    fn seed_keypair(
+        seed: Vec<u8>,
+    ) -> Result<
+        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::CryptoError,
+    > {
+        crypto_impl::kem_xwing_seed_keypair(&seed)
+            .map(
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                    public_key,
+                    secret_key,
+                },
+            )
+            .map_err(to_wit_error)
+    }
+
+    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_xwing_keypair();
+        exports::libsodium::crypto::types::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn enc(
+        pk: Vec<u8>,
+    ) -> Result<(Vec<u8>, Vec<u8>), exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_xwing_enc(&pk).map_err(to_wit_error)
+    }
+
+    fn dec(
+        ct: Vec<u8>,
+        sk: Vec<u8>,
+    ) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_xwing_dec(&ct, &sk).map_err(to_wit_error)
+    }
+}
+
+// ============================================================================
+// KEM (generic)
+// ============================================================================
+
+impl exports::libsodium::crypto::kem::Guest for Component {
+    fn public_key_bytes() -> u32 {
+        crypto_impl::kem_public_key_bytes()
+    }
+
+    fn secret_key_bytes() -> u32 {
+        crypto_impl::kem_secret_key_bytes()
+    }
+
+    fn ciphertext_bytes() -> u32 {
+        crypto_impl::kem_ciphertext_bytes()
+    }
+
+    fn shared_secret_bytes() -> u32 {
+        crypto_impl::kem_shared_secret_bytes()
+    }
+
+    fn seed_bytes() -> u32 {
+        crypto_impl::kem_seed_bytes()
+    }
+
+    fn primitive() -> String {
+        crypto_impl::kem_primitive()
+    }
+
+    fn seed_keypair(
+        seed: Vec<u8>,
+    ) -> Result<
+        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::CryptoError,
+    > {
+        crypto_impl::kem_seed_keypair(&seed)
+            .map(
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                    public_key,
+                    secret_key,
+                },
+            )
+            .map_err(to_wit_error)
+    }
+
+    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_keypair();
+        exports::libsodium::crypto::types::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn enc(
+        pk: Vec<u8>,
+    ) -> Result<(Vec<u8>, Vec<u8>), exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_enc(&pk).map_err(to_wit_error)
+    }
+
+    fn dec(
+        ct: Vec<u8>,
+        sk: Vec<u8>,
+    ) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_dec(&ct, &sk).map_err(to_wit_error)
+    }
+}
+
+// ============================================================================
+// KEM ML-KEM-768
+// ============================================================================
+
+impl exports::libsodium::crypto::kem_mlkem768::Guest for Component {
+    fn public_key_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_public_key_bytes()
+    }
+
+    fn secret_key_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_secret_key_bytes()
+    }
+
+    fn ciphertext_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_ciphertext_bytes()
+    }
+
+    fn shared_secret_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_shared_secret_bytes()
+    }
+
+    fn seed_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_seed_bytes()
+    }
+
+    fn seed_keypair(
+        seed: Vec<u8>,
+    ) -> Result<
+        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::CryptoError,
+    > {
+        crypto_impl::kem_mlkem768_seed_keypair(&seed)
+            .map(
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                    public_key,
+                    secret_key,
+                },
+            )
+            .map_err(to_wit_error)
+    }
+
+    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_mlkem768_keypair();
+        exports::libsodium::crypto::types::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn enc(
+        pk: Vec<u8>,
+    ) -> Result<(Vec<u8>, Vec<u8>), exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_mlkem768_enc(&pk).map_err(to_wit_error)
+    }
+
+    fn dec(
+        ct: Vec<u8>,
+        sk: Vec<u8>,
+    ) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::kem_mlkem768_dec(&ct, &sk).map_err(to_wit_error)
+    }
+}
+
+// ============================================================================
 // Key Exchange
 // ============================================================================
 
@@ -1676,6 +1897,64 @@ impl exports::libsodium::crypto::sha512_state::Guest for Component {
 
     fn destroy(state_id: u64) {
         crypto_impl::sha512_state_destroy(state_id)
+    }
+}
+
+// ============================================================================
+// SHA-3-256 State
+// ============================================================================
+
+impl exports::libsodium::crypto::sha3256_state::Guest for Component {
+    fn state_bytes() -> u32 {
+        crypto_impl::sha3_256_state_bytes()
+    }
+
+    fn init() -> Result<u64, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_256_state_init().map_err(to_wit_error)
+    }
+
+    fn update(
+        state_id: u64,
+        data: Vec<u8>,
+    ) -> Result<(), exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_256_state_update(state_id, &data).map_err(to_wit_error)
+    }
+
+    fn r#final(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_256_state_final(state_id).map_err(to_wit_error)
+    }
+
+    fn destroy(state_id: u64) {
+        crypto_impl::sha3_256_state_destroy(state_id)
+    }
+}
+
+// ============================================================================
+// SHA-3-512 State
+// ============================================================================
+
+impl exports::libsodium::crypto::sha3512_state::Guest for Component {
+    fn state_bytes() -> u32 {
+        crypto_impl::sha3_512_state_bytes()
+    }
+
+    fn init() -> Result<u64, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_512_state_init().map_err(to_wit_error)
+    }
+
+    fn update(
+        state_id: u64,
+        data: Vec<u8>,
+    ) -> Result<(), exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_512_state_update(state_id, &data).map_err(to_wit_error)
+    }
+
+    fn r#final(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+        crypto_impl::sha3_512_state_final(state_id).map_err(to_wit_error)
+    }
+
+    fn destroy(state_id: u64) {
+        crypto_impl::sha3_512_state_destroy(state_id)
     }
 }
 

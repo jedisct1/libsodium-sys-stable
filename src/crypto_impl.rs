@@ -841,6 +841,38 @@ pub fn sha512(message: &[u8]) -> Vec<u8> {
 }
 
 // ============================================================================
+// SHA-3-256
+// ============================================================================
+
+pub fn sha3_256_bytes() -> u32 {
+    crypto_hash_sha3256_BYTES
+}
+
+pub fn sha3_256(message: &[u8]) -> Vec<u8> {
+    let mut hash = vec![0u8; crypto_hash_sha3256_BYTES as usize];
+    unsafe {
+        crypto_hash_sha3256(hash.as_mut_ptr(), message.as_ptr(), message.len() as u64);
+    }
+    hash
+}
+
+// ============================================================================
+// SHA-3-512
+// ============================================================================
+
+pub fn sha3_512_bytes() -> u32 {
+    crypto_hash_sha3512_BYTES
+}
+
+pub fn sha3_512(message: &[u8]) -> Vec<u8> {
+    let mut hash = vec![0u8; crypto_hash_sha3512_BYTES as usize];
+    unsafe {
+        crypto_hash_sha3512(hash.as_mut_ptr(), message.as_ptr(), message.len() as u64);
+    }
+    hash
+}
+
+// ============================================================================
 // Auth (HMAC-SHA512-256)
 // ============================================================================
 
@@ -2086,6 +2118,252 @@ pub fn aead_aegis256_decrypt_detached(
 }
 
 // ============================================================================
+// KEM X-Wing
+// ============================================================================
+
+pub fn kem_xwing_public_key_bytes() -> u32 {
+    crypto_kem_xwing_PUBLICKEYBYTES
+}
+
+pub fn kem_xwing_secret_key_bytes() -> u32 {
+    crypto_kem_xwing_SECRETKEYBYTES
+}
+
+pub fn kem_xwing_ciphertext_bytes() -> u32 {
+    crypto_kem_xwing_CIPHERTEXTBYTES
+}
+
+pub fn kem_xwing_shared_secret_bytes() -> u32 {
+    crypto_kem_xwing_SHAREDSECRETBYTES
+}
+
+pub fn kem_xwing_seed_bytes() -> u32 {
+    crypto_kem_xwing_SEEDBYTES
+}
+
+pub fn kem_xwing_seed_keypair(seed: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if seed.len() != crypto_kem_xwing_SEEDBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut pk = vec![0u8; crypto_kem_xwing_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_xwing_SECRETKEYBYTES as usize];
+    let ret =
+        unsafe { crypto_kem_xwing_seed_keypair(pk.as_mut_ptr(), sk.as_mut_ptr(), seed.as_ptr()) };
+    if ret == 0 {
+        Ok((pk, sk))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_xwing_keypair() -> (Vec<u8>, Vec<u8>) {
+    let mut pk = vec![0u8; crypto_kem_xwing_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_xwing_SECRETKEYBYTES as usize];
+    unsafe {
+        crypto_kem_xwing_keypair(pk.as_mut_ptr(), sk.as_mut_ptr());
+    }
+    (pk, sk)
+}
+
+pub fn kem_xwing_enc(pk: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if pk.len() != crypto_kem_xwing_PUBLICKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ct = vec![0u8; crypto_kem_xwing_CIPHERTEXTBYTES as usize];
+    let mut ss = vec![0u8; crypto_kem_xwing_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_xwing_enc(ct.as_mut_ptr(), ss.as_mut_ptr(), pk.as_ptr()) };
+    if ret == 0 {
+        Ok((ct, ss))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_xwing_dec(ct: &[u8], sk: &[u8]) -> CryptoResult<Vec<u8>> {
+    if ct.len() != crypto_kem_xwing_CIPHERTEXTBYTES as usize {
+        return Err(CryptoError::OperationFailed);
+    }
+    if sk.len() != crypto_kem_xwing_SECRETKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ss = vec![0u8; crypto_kem_xwing_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_xwing_dec(ss.as_mut_ptr(), ct.as_ptr(), sk.as_ptr()) };
+    if ret == 0 {
+        Ok(ss)
+    } else {
+        Err(CryptoError::VerificationFailed)
+    }
+}
+
+// ============================================================================
+// KEM (generic)
+// ============================================================================
+
+pub fn kem_public_key_bytes() -> u32 {
+    crypto_kem_PUBLICKEYBYTES
+}
+
+pub fn kem_secret_key_bytes() -> u32 {
+    crypto_kem_SECRETKEYBYTES
+}
+
+pub fn kem_ciphertext_bytes() -> u32 {
+    crypto_kem_CIPHERTEXTBYTES
+}
+
+pub fn kem_shared_secret_bytes() -> u32 {
+    crypto_kem_SHAREDSECRETBYTES
+}
+
+pub fn kem_seed_bytes() -> u32 {
+    crypto_kem_SEEDBYTES
+}
+
+pub fn kem_primitive() -> String {
+    unsafe {
+        let ptr = crypto_kem_primitive();
+        let mut len = 0;
+        while *ptr.add(len) != 0 {
+            len += 1;
+        }
+        let slice = std::slice::from_raw_parts(ptr as *const u8, len);
+        String::from_utf8_lossy(slice).into_owned()
+    }
+}
+
+pub fn kem_seed_keypair(seed: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if seed.len() != crypto_kem_SEEDBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut pk = vec![0u8; crypto_kem_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_SECRETKEYBYTES as usize];
+    let ret = unsafe { crypto_kem_seed_keypair(pk.as_mut_ptr(), sk.as_mut_ptr(), seed.as_ptr()) };
+    if ret == 0 {
+        Ok((pk, sk))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_keypair() -> (Vec<u8>, Vec<u8>) {
+    let mut pk = vec![0u8; crypto_kem_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_SECRETKEYBYTES as usize];
+    unsafe {
+        crypto_kem_keypair(pk.as_mut_ptr(), sk.as_mut_ptr());
+    }
+    (pk, sk)
+}
+
+pub fn kem_enc(pk: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if pk.len() != crypto_kem_PUBLICKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ct = vec![0u8; crypto_kem_CIPHERTEXTBYTES as usize];
+    let mut ss = vec![0u8; crypto_kem_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_enc(ct.as_mut_ptr(), ss.as_mut_ptr(), pk.as_ptr()) };
+    if ret == 0 {
+        Ok((ct, ss))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_dec(ct: &[u8], sk: &[u8]) -> CryptoResult<Vec<u8>> {
+    if ct.len() != crypto_kem_CIPHERTEXTBYTES as usize {
+        return Err(CryptoError::OperationFailed);
+    }
+    if sk.len() != crypto_kem_SECRETKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ss = vec![0u8; crypto_kem_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_dec(ss.as_mut_ptr(), ct.as_ptr(), sk.as_ptr()) };
+    if ret == 0 {
+        Ok(ss)
+    } else {
+        Err(CryptoError::VerificationFailed)
+    }
+}
+
+// ============================================================================
+// KEM ML-KEM-768
+// ============================================================================
+
+pub fn kem_mlkem768_public_key_bytes() -> u32 {
+    crypto_kem_mlkem768_PUBLICKEYBYTES
+}
+
+pub fn kem_mlkem768_secret_key_bytes() -> u32 {
+    crypto_kem_mlkem768_SECRETKEYBYTES
+}
+
+pub fn kem_mlkem768_ciphertext_bytes() -> u32 {
+    crypto_kem_mlkem768_CIPHERTEXTBYTES
+}
+
+pub fn kem_mlkem768_shared_secret_bytes() -> u32 {
+    crypto_kem_mlkem768_SHAREDSECRETBYTES
+}
+
+pub fn kem_mlkem768_seed_bytes() -> u32 {
+    crypto_kem_mlkem768_SEEDBYTES
+}
+
+pub fn kem_mlkem768_seed_keypair(seed: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if seed.len() != crypto_kem_mlkem768_SEEDBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut pk = vec![0u8; crypto_kem_mlkem768_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_mlkem768_SECRETKEYBYTES as usize];
+    let ret = unsafe {
+        crypto_kem_mlkem768_seed_keypair(pk.as_mut_ptr(), sk.as_mut_ptr(), seed.as_ptr())
+    };
+    if ret == 0 {
+        Ok((pk, sk))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_mlkem768_keypair() -> (Vec<u8>, Vec<u8>) {
+    let mut pk = vec![0u8; crypto_kem_mlkem768_PUBLICKEYBYTES as usize];
+    let mut sk = vec![0u8; crypto_kem_mlkem768_SECRETKEYBYTES as usize];
+    unsafe {
+        crypto_kem_mlkem768_keypair(pk.as_mut_ptr(), sk.as_mut_ptr());
+    }
+    (pk, sk)
+}
+
+pub fn kem_mlkem768_enc(pk: &[u8]) -> CryptoResult<(Vec<u8>, Vec<u8>)> {
+    if pk.len() != crypto_kem_mlkem768_PUBLICKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ct = vec![0u8; crypto_kem_mlkem768_CIPHERTEXTBYTES as usize];
+    let mut ss = vec![0u8; crypto_kem_mlkem768_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_mlkem768_enc(ct.as_mut_ptr(), ss.as_mut_ptr(), pk.as_ptr()) };
+    if ret == 0 {
+        Ok((ct, ss))
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn kem_mlkem768_dec(ct: &[u8], sk: &[u8]) -> CryptoResult<Vec<u8>> {
+    if ct.len() != crypto_kem_mlkem768_CIPHERTEXTBYTES as usize {
+        return Err(CryptoError::OperationFailed);
+    }
+    if sk.len() != crypto_kem_mlkem768_SECRETKEYBYTES as usize {
+        return Err(CryptoError::InvalidKeySize);
+    }
+    let mut ss = vec![0u8; crypto_kem_mlkem768_SHAREDSECRETBYTES as usize];
+    let ret = unsafe { crypto_kem_mlkem768_dec(ss.as_mut_ptr(), ct.as_ptr(), sk.as_ptr()) };
+    if ret == 0 {
+        Ok(ss)
+    } else {
+        Err(CryptoError::VerificationFailed)
+    }
+}
+
+// ============================================================================
 // Key Exchange
 // ============================================================================
 
@@ -2773,6 +3051,8 @@ static HKDF_SHA256_STATES: Mutex<Option<HashMap<u64, crypto_kdf_hkdf_sha256_stat
     Mutex::new(None);
 static HKDF_SHA512_STATES: Mutex<Option<HashMap<u64, crypto_kdf_hkdf_sha512_state>>> =
     Mutex::new(None);
+static SHA3_256_STATES: Mutex<Option<HashMap<u64, crypto_hash_sha3256_state>>> = Mutex::new(None);
+static SHA3_512_STATES: Mutex<Option<HashMap<u64, crypto_hash_sha3512_state>>> = Mutex::new(None);
 static SHAKE128_STATES: Mutex<Option<HashMap<u64, crypto_xof_shake128_state>>> = Mutex::new(None);
 static SHAKE256_STATES: Mutex<Option<HashMap<u64, crypto_xof_shake256_state>>> = Mutex::new(None);
 static TURBOSHAKE128_STATES: Mutex<Option<HashMap<u64, crypto_xof_turboshake128_state>>> =
@@ -2802,6 +3082,24 @@ fn sha256_states() -> std::sync::MutexGuard<'static, Option<HashMap<u64, crypto_
 fn sha512_states() -> std::sync::MutexGuard<'static, Option<HashMap<u64, crypto_hash_sha512_state>>>
 {
     let mut guard = SHA512_STATES.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(HashMap::new());
+    }
+    guard
+}
+
+fn sha3_256_states(
+) -> std::sync::MutexGuard<'static, Option<HashMap<u64, crypto_hash_sha3256_state>>> {
+    let mut guard = SHA3_256_STATES.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(HashMap::new());
+    }
+    guard
+}
+
+fn sha3_512_states(
+) -> std::sync::MutexGuard<'static, Option<HashMap<u64, crypto_hash_sha3512_state>>> {
+    let mut guard = SHA3_512_STATES.lock().unwrap();
     if guard.is_none() {
         *guard = Some(HashMap::new());
     }
@@ -3130,6 +3428,130 @@ pub fn sha512_state_final(state_id: u64) -> CryptoResult<Vec<u8>> {
 
 pub fn sha512_state_destroy(state_id: u64) {
     let mut states = sha512_states();
+    states.as_mut().unwrap().remove(&state_id);
+}
+
+// ============================================================================
+// SHA-3-256 State
+// ============================================================================
+
+pub fn sha3_256_state_bytes() -> u32 {
+    std::mem::size_of::<crypto_hash_sha3256_state>() as u32
+}
+
+pub fn sha3_256_state_init() -> CryptoResult<u64> {
+    let mut state = unsafe { std::mem::zeroed::<crypto_hash_sha3256_state>() };
+    let ret = unsafe { crypto_hash_sha3256_init(&mut state) };
+
+    if ret != 0 {
+        return Err(CryptoError::OperationFailed);
+    }
+
+    let id = next_state_id();
+    let mut states = sha3_256_states();
+    states.as_mut().unwrap().insert(id, state);
+    Ok(id)
+}
+
+pub fn sha3_256_state_update(state_id: u64, data: &[u8]) -> CryptoResult<()> {
+    let mut states = sha3_256_states();
+    let state = states
+        .as_mut()
+        .unwrap()
+        .get_mut(&state_id)
+        .ok_or(CryptoError::OperationFailed)?;
+
+    let ret = unsafe { crypto_hash_sha3256_update(state, data.as_ptr(), data.len() as u64) };
+
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn sha3_256_state_final(state_id: u64) -> CryptoResult<Vec<u8>> {
+    let mut states = sha3_256_states();
+    let mut state = states
+        .as_mut()
+        .unwrap()
+        .remove(&state_id)
+        .ok_or(CryptoError::OperationFailed)?;
+
+    let mut out = vec![0u8; crypto_hash_sha3256_BYTES as usize];
+    let ret = unsafe { crypto_hash_sha3256_final(&mut state, out.as_mut_ptr()) };
+
+    if ret == 0 {
+        Ok(out)
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn sha3_256_state_destroy(state_id: u64) {
+    let mut states = sha3_256_states();
+    states.as_mut().unwrap().remove(&state_id);
+}
+
+// ============================================================================
+// SHA-3-512 State
+// ============================================================================
+
+pub fn sha3_512_state_bytes() -> u32 {
+    std::mem::size_of::<crypto_hash_sha3512_state>() as u32
+}
+
+pub fn sha3_512_state_init() -> CryptoResult<u64> {
+    let mut state = unsafe { std::mem::zeroed::<crypto_hash_sha3512_state>() };
+    let ret = unsafe { crypto_hash_sha3512_init(&mut state) };
+
+    if ret != 0 {
+        return Err(CryptoError::OperationFailed);
+    }
+
+    let id = next_state_id();
+    let mut states = sha3_512_states();
+    states.as_mut().unwrap().insert(id, state);
+    Ok(id)
+}
+
+pub fn sha3_512_state_update(state_id: u64, data: &[u8]) -> CryptoResult<()> {
+    let mut states = sha3_512_states();
+    let state = states
+        .as_mut()
+        .unwrap()
+        .get_mut(&state_id)
+        .ok_or(CryptoError::OperationFailed)?;
+
+    let ret = unsafe { crypto_hash_sha3512_update(state, data.as_ptr(), data.len() as u64) };
+
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn sha3_512_state_final(state_id: u64) -> CryptoResult<Vec<u8>> {
+    let mut states = sha3_512_states();
+    let mut state = states
+        .as_mut()
+        .unwrap()
+        .remove(&state_id)
+        .ok_or(CryptoError::OperationFailed)?;
+
+    let mut out = vec![0u8; crypto_hash_sha3512_BYTES as usize];
+    let ret = unsafe { crypto_hash_sha3512_final(&mut state, out.as_mut_ptr()) };
+
+    if ret == 0 {
+        Ok(out)
+    } else {
+        Err(CryptoError::OperationFailed)
+    }
+}
+
+pub fn sha3_512_state_destroy(state_id: u64) {
+    let mut states = sha3_512_states();
     states.as_mut().unwrap().remove(&state_id);
 }
 

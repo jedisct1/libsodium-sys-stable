@@ -1,4 +1,4 @@
-package libsodium:crypto@1.0.21;
+package libsodium:crypto@1.0.22;
 
 /// Core libsodium cryptographic primitives exposed as a WASI component.
 /// This interface provides safe wrappers around libsodium's functionality.
@@ -289,6 +289,24 @@ interface sha512 {
     bytes: func() -> u32;
 
     /// Compute SHA-512 hash
+    hash: func(message: list<u8>) -> list<u8>;
+}
+
+/// SHA-3-256 hashing
+interface sha3256 {
+    /// Hash size in bytes (32)
+    bytes: func() -> u32;
+
+    /// Compute SHA-3-256 hash
+    hash: func(message: list<u8>) -> list<u8>;
+}
+
+/// SHA-3-512 hashing
+interface sha3512 {
+    /// Hash size in bytes (64)
+    bytes: func() -> u32;
+
+    /// Compute SHA-3-512 hash
     hash: func(message: list<u8>) -> list<u8>;
 }
 
@@ -915,6 +933,48 @@ interface sha512-state {
     destroy: func(state-id: u64);
 }
 
+/// Streaming SHA-3-256 hash
+interface sha3256-state {
+    use types.{crypto-error};
+
+    /// State size in bytes
+    state-bytes: func() -> u32;
+
+    /// Initialize a hash state
+    /// Returns state-id
+    init: func() -> result<u64, crypto-error>;
+
+    /// Update the hash state with more data
+    update: func(state-id: u64, data: list<u8>) -> result<_, crypto-error>;
+
+    /// Finalize and get the hash
+    %final: func(state-id: u64) -> result<list<u8>, crypto-error>;
+
+    /// Destroy a hash state
+    destroy: func(state-id: u64);
+}
+
+/// Streaming SHA-3-512 hash
+interface sha3512-state {
+    use types.{crypto-error};
+
+    /// State size in bytes
+    state-bytes: func() -> u32;
+
+    /// Initialize a hash state
+    /// Returns state-id
+    init: func() -> result<u64, crypto-error>;
+
+    /// Update the hash state with more data
+    update: func(state-id: u64, data: list<u8>) -> result<_, crypto-error>;
+
+    /// Finalize and get the hash
+    %final: func(state-id: u64) -> result<list<u8>, crypto-error>;
+
+    /// Destroy a hash state
+    destroy: func(state-id: u64);
+}
+
 /// Streaming authentication (HMAC-SHA512-256)
 interface auth-state {
     use types.{crypto-error};
@@ -1189,6 +1249,105 @@ interface kdf-hkdf-sha512 {
 
     /// Expand a PRK to derived keys
     expand: func(out-len: u32, prk: list<u8>, info: list<u8>) -> result<list<u8>, crypto-error>;
+}
+
+/// Key Encapsulation Mechanism (X-Wing hybrid KEM)
+interface kem-xwing {
+    use types.{crypto-error, key-pair};
+
+    /// Public key size in bytes (1216)
+    public-key-bytes: func() -> u32;
+
+    /// Secret key size in bytes (32)
+    secret-key-bytes: func() -> u32;
+
+    /// Ciphertext size in bytes (1120)
+    ciphertext-bytes: func() -> u32;
+
+    /// Shared secret size in bytes (32)
+    shared-secret-bytes: func() -> u32;
+
+    /// Seed size in bytes (32)
+    seed-bytes: func() -> u32;
+
+    /// Generate a key pair from a seed
+    seed-keypair: func(seed: list<u8>) -> result<key-pair, crypto-error>;
+
+    /// Generate a random key pair
+    keypair: func() -> key-pair;
+
+    /// Encapsulate: generate a shared secret and ciphertext for a public key
+    enc: func(pk: list<u8>) -> result<tuple<list<u8>, list<u8>>, crypto-error>;
+
+    /// Decapsulate: recover the shared secret from a ciphertext and secret key
+    dec: func(ct: list<u8>, sk: list<u8>) -> result<list<u8>, crypto-error>;
+}
+
+/// Key Encapsulation Mechanism (generic, defaults to X-Wing)
+interface kem {
+    use types.{crypto-error, key-pair};
+
+    /// Public key size in bytes
+    public-key-bytes: func() -> u32;
+
+    /// Secret key size in bytes
+    secret-key-bytes: func() -> u32;
+
+    /// Ciphertext size in bytes
+    ciphertext-bytes: func() -> u32;
+
+    /// Shared secret size in bytes
+    shared-secret-bytes: func() -> u32;
+
+    /// Seed size in bytes
+    seed-bytes: func() -> u32;
+
+    /// Primitive name
+    primitive: func() -> string;
+
+    /// Generate a key pair from a seed
+    seed-keypair: func(seed: list<u8>) -> result<key-pair, crypto-error>;
+
+    /// Generate a random key pair
+    keypair: func() -> key-pair;
+
+    /// Encapsulate: generate a shared secret and ciphertext for a public key
+    enc: func(pk: list<u8>) -> result<tuple<list<u8>, list<u8>>, crypto-error>;
+
+    /// Decapsulate: recover the shared secret from a ciphertext and secret key
+    dec: func(ct: list<u8>, sk: list<u8>) -> result<list<u8>, crypto-error>;
+}
+
+/// Key Encapsulation Mechanism (ML-KEM-768)
+interface kem-mlkem768 {
+    use types.{crypto-error, key-pair};
+
+    /// Public key size in bytes (1184)
+    public-key-bytes: func() -> u32;
+
+    /// Secret key size in bytes (2400)
+    secret-key-bytes: func() -> u32;
+
+    /// Ciphertext size in bytes (1088)
+    ciphertext-bytes: func() -> u32;
+
+    /// Shared secret size in bytes (32)
+    shared-secret-bytes: func() -> u32;
+
+    /// Seed size in bytes (64)
+    seed-bytes: func() -> u32;
+
+    /// Generate a key pair from a seed
+    seed-keypair: func(seed: list<u8>) -> result<key-pair, crypto-error>;
+
+    /// Generate a random key pair
+    keypair: func() -> key-pair;
+
+    /// Encapsulate: generate a shared secret and ciphertext for a public key
+    enc: func(pk: list<u8>) -> result<tuple<list<u8>, list<u8>>, crypto-error>;
+
+    /// Decapsulate: recover the shared secret from a ciphertext and secret key
+    dec: func(ct: list<u8>, sk: list<u8>) -> result<list<u8>, crypto-error>;
 }
 
 /// Password hashing (scrypt)
@@ -1760,6 +1919,10 @@ world libsodium {
     export sha256-state;
     export sha512;
     export sha512-state;
+    export sha3256;
+    export sha3256-state;
+    export sha3512;
+    export sha3512-state;
     export auth;
     export auth-state;
     export auth-hmacsha256;
@@ -1776,6 +1939,9 @@ world libsodium {
     export kdf;
     export kdf-hkdf-sha256;
     export kdf-hkdf-sha512;
+    export kem;
+    export kem-xwing;
+    export kem-mlkem768;
     export kx;
     export scalarmult;
     export scalarmult-ed25519;

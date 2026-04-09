@@ -287,6 +287,26 @@ sha512-bytes: func() -> u32
 sha512-hash: func(message: list<u8>) -> list<u8>
 
 // ============================================================================
+// Sha3-256 - SHA-3-256 hashing
+// ============================================================================
+
+/// Hash size in bytes (32)
+sha3256-bytes: func() -> u32
+
+/// Compute SHA-3-256 hash
+sha3256-hash: func(message: list<u8>) -> list<u8>
+
+// ============================================================================
+// Sha3-512 - SHA-3-512 hashing
+// ============================================================================
+
+/// Hash size in bytes (64)
+sha3512-bytes: func() -> u32
+
+/// Compute SHA-3-512 hash
+sha3512-hash: func(message: list<u8>) -> list<u8>
+
+// ============================================================================
 // Auth - Secret-key authentication (HMAC-SHA512-256)
 // ============================================================================
 
@@ -890,6 +910,46 @@ sha512-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
 sha512-state-destroy: func(state-id: u64)
 
 // ============================================================================
+// Sha3-256 State - Streaming SHA-3-256 hash
+// ============================================================================
+
+/// State size in bytes
+sha3256-state-state-bytes: func() -> u32
+
+/// Initialize a hash state
+/// Returns state-id
+sha3256-state-init: func() -> expected<u64, crypto-error>
+
+/// Update the hash state with more data
+sha3256-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the hash
+sha3256-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy a hash state
+sha3256-state-destroy: func(state-id: u64)
+
+// ============================================================================
+// Sha3-512 State - Streaming SHA-3-512 hash
+// ============================================================================
+
+/// State size in bytes
+sha3512-state-state-bytes: func() -> u32
+
+/// Initialize a hash state
+/// Returns state-id
+sha3512-state-init: func() -> expected<u64, crypto-error>
+
+/// Update the hash state with more data
+sha3512-state-update: func(state-id: u64, data: list<u8>) -> expected<unit, crypto-error>
+
+/// Finalize and get the hash
+sha3512-state-final: func(state-id: u64) -> expected<list<u8>, crypto-error>
+
+/// Destroy a hash state
+sha3512-state-destroy: func(state-id: u64)
+
+// ============================================================================
 // Auth State - Streaming authentication (HMAC-SHA512-256)
 // ============================================================================
 
@@ -1157,6 +1217,102 @@ kdf-hkdf-sha512-extract-final: func(state-id: u64) -> expected<list<u8>, crypto-
 
 /// Expand a PRK to derived keys
 kdf-hkdf-sha512-expand: func(out-len: u32, prk: list<u8>, info: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kem Xwing - Key Encapsulation Mechanism (X-Wing hybrid KEM)
+// ============================================================================
+
+/// Public key size in bytes (1216)
+kem-xwing-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (32)
+kem-xwing-secret-key-bytes: func() -> u32
+
+/// Ciphertext size in bytes (1120)
+kem-xwing-ciphertext-bytes: func() -> u32
+
+/// Shared secret size in bytes (32)
+kem-xwing-shared-secret-bytes: func() -> u32
+
+/// Seed size in bytes (32)
+kem-xwing-seed-bytes: func() -> u32
+
+/// Generate a key pair from a seed
+kem-xwing-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+
+/// Generate a random key pair
+kem-xwing-keypair: func() -> key-pair
+
+/// Encapsulate: generate ciphertext and shared secret for a public key
+kem-xwing-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decapsulate: recover shared secret from ciphertext and secret key
+kem-xwing-dec: func(ct: list<u8>, sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kem - Key Encapsulation Mechanism (generic, defaults to X-Wing)
+// ============================================================================
+
+/// Public key size in bytes
+kem-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes
+kem-secret-key-bytes: func() -> u32
+
+/// Ciphertext size in bytes
+kem-ciphertext-bytes: func() -> u32
+
+/// Shared secret size in bytes
+kem-shared-secret-bytes: func() -> u32
+
+/// Seed size in bytes
+kem-seed-bytes: func() -> u32
+
+/// Primitive name
+kem-primitive: func() -> string
+
+/// Generate a key pair from a seed
+kem-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+
+/// Generate a random key pair
+kem-keypair: func() -> key-pair
+
+/// Encapsulate: generate ciphertext and shared secret for a public key
+kem-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decapsulate: recover shared secret from ciphertext and secret key
+kem-dec: func(ct: list<u8>, sk: list<u8>) -> expected<list<u8>, crypto-error>
+
+// ============================================================================
+// Kem Mlkem768 - Key Encapsulation Mechanism (ML-KEM-768)
+// ============================================================================
+
+/// Public key size in bytes (1184)
+kem-mlkem768-public-key-bytes: func() -> u32
+
+/// Secret key size in bytes (2400)
+kem-mlkem768-secret-key-bytes: func() -> u32
+
+/// Ciphertext size in bytes (1088)
+kem-mlkem768-ciphertext-bytes: func() -> u32
+
+/// Shared secret size in bytes (32)
+kem-mlkem768-shared-secret-bytes: func() -> u32
+
+/// Seed size in bytes (64)
+kem-mlkem768-seed-bytes: func() -> u32
+
+/// Generate a key pair from a seed
+kem-mlkem768-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+
+/// Generate a random key pair
+kem-mlkem768-keypair: func() -> key-pair
+
+/// Encapsulate: generate ciphertext and shared secret for a public key
+kem-mlkem768-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
+
+/// Decapsulate: recover shared secret from ciphertext and secret key
+kem-mlkem768-dec: func(ct: list<u8>, sk: list<u8>) -> expected<list<u8>, crypto-error>
 
 // ============================================================================
 // Pwhash Scrypt - Password hashing (scrypt)

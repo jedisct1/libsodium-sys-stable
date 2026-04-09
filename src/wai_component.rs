@@ -446,6 +446,30 @@ impl libsodium::Libsodium for Libsodium {
     }
 
     // ========================================================================
+    // SHA3-256
+    // ========================================================================
+
+    fn sha3256_bytes() -> u32 {
+        crypto_impl::sha3_256_bytes()
+    }
+
+    fn sha3256_hash(message: Vec<u8>) -> Vec<u8> {
+        crypto_impl::sha3_256(&message)
+    }
+
+    // ========================================================================
+    // SHA3-512
+    // ========================================================================
+
+    fn sha3512_bytes() -> u32 {
+        crypto_impl::sha3_512_bytes()
+    }
+
+    fn sha3512_hash(message: Vec<u8>) -> Vec<u8> {
+        crypto_impl::sha3_512(&message)
+    }
+
+    // ========================================================================
     // Auth
     // ========================================================================
 
@@ -1043,6 +1067,159 @@ impl libsodium::Libsodium for Libsodium {
     }
 
     // ========================================================================
+    // KEM X-Wing
+    // ========================================================================
+
+    fn kem_xwing_public_key_bytes() -> u32 {
+        crypto_impl::kem_xwing_public_key_bytes()
+    }
+
+    fn kem_xwing_secret_key_bytes() -> u32 {
+        crypto_impl::kem_xwing_secret_key_bytes()
+    }
+
+    fn kem_xwing_ciphertext_bytes() -> u32 {
+        crypto_impl::kem_xwing_ciphertext_bytes()
+    }
+
+    fn kem_xwing_shared_secret_bytes() -> u32 {
+        crypto_impl::kem_xwing_shared_secret_bytes()
+    }
+
+    fn kem_xwing_seed_bytes() -> u32 {
+        crypto_impl::kem_xwing_seed_bytes()
+    }
+
+    fn kem_xwing_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+        crypto_impl::kem_xwing_seed_keypair(&seed)
+            .map(|(public_key, secret_key)| libsodium::KeyPair {
+                public_key,
+                secret_key,
+            })
+            .map_err(to_wai_error)
+    }
+
+    fn kem_xwing_keypair() -> libsodium::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_xwing_keypair();
+        libsodium::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn kem_xwing_enc(pk: Vec<u8>) -> Result<(Vec<u8>, Vec<u8>), libsodium::CryptoError> {
+        crypto_impl::kem_xwing_enc(&pk).map_err(to_wai_error)
+    }
+
+    fn kem_xwing_dec(ct: Vec<u8>, sk: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::kem_xwing_dec(&ct, &sk).map_err(to_wai_error)
+    }
+
+    // ========================================================================
+    // KEM (generic)
+    // ========================================================================
+
+    fn kem_public_key_bytes() -> u32 {
+        crypto_impl::kem_public_key_bytes()
+    }
+
+    fn kem_secret_key_bytes() -> u32 {
+        crypto_impl::kem_secret_key_bytes()
+    }
+
+    fn kem_ciphertext_bytes() -> u32 {
+        crypto_impl::kem_ciphertext_bytes()
+    }
+
+    fn kem_shared_secret_bytes() -> u32 {
+        crypto_impl::kem_shared_secret_bytes()
+    }
+
+    fn kem_seed_bytes() -> u32 {
+        crypto_impl::kem_seed_bytes()
+    }
+
+    fn kem_primitive() -> String {
+        crypto_impl::kem_primitive()
+    }
+
+    fn kem_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+        crypto_impl::kem_seed_keypair(&seed)
+            .map(|(public_key, secret_key)| libsodium::KeyPair {
+                public_key,
+                secret_key,
+            })
+            .map_err(to_wai_error)
+    }
+
+    fn kem_keypair() -> libsodium::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_keypair();
+        libsodium::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn kem_enc(pk: Vec<u8>) -> Result<(Vec<u8>, Vec<u8>), libsodium::CryptoError> {
+        crypto_impl::kem_enc(&pk).map_err(to_wai_error)
+    }
+
+    fn kem_dec(ct: Vec<u8>, sk: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::kem_dec(&ct, &sk).map_err(to_wai_error)
+    }
+
+    // ========================================================================
+    // KEM ML-KEM-768
+    // ========================================================================
+
+    fn kem_mlkem768_public_key_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_public_key_bytes()
+    }
+
+    fn kem_mlkem768_secret_key_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_secret_key_bytes()
+    }
+
+    fn kem_mlkem768_ciphertext_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_ciphertext_bytes()
+    }
+
+    fn kem_mlkem768_shared_secret_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_shared_secret_bytes()
+    }
+
+    fn kem_mlkem768_seed_bytes() -> u32 {
+        crypto_impl::kem_mlkem768_seed_bytes()
+    }
+
+    fn kem_mlkem768_seed_keypair(
+        seed: Vec<u8>,
+    ) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+        crypto_impl::kem_mlkem768_seed_keypair(&seed)
+            .map(|(public_key, secret_key)| libsodium::KeyPair {
+                public_key,
+                secret_key,
+            })
+            .map_err(to_wai_error)
+    }
+
+    fn kem_mlkem768_keypair() -> libsodium::KeyPair {
+        let (public_key, secret_key) = crypto_impl::kem_mlkem768_keypair();
+        libsodium::KeyPair {
+            public_key,
+            secret_key,
+        }
+    }
+
+    fn kem_mlkem768_enc(pk: Vec<u8>) -> Result<(Vec<u8>, Vec<u8>), libsodium::CryptoError> {
+        crypto_impl::kem_mlkem768_enc(&pk).map_err(to_wai_error)
+    }
+
+    fn kem_mlkem768_dec(ct: Vec<u8>, sk: Vec<u8>) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::kem_mlkem768_dec(&ct, &sk).map_err(to_wai_error)
+    }
+
+    // ========================================================================
     // Key Exchange
     // ========================================================================
 
@@ -1520,6 +1697,54 @@ impl libsodium::Libsodium for Libsodium {
 
     fn sha512_state_destroy(state_id: u64) {
         crypto_impl::sha512_state_destroy(state_id)
+    }
+
+    // ========================================================================
+    // SHA3-256 State
+    // ========================================================================
+
+    fn sha3256_state_state_bytes() -> u32 {
+        crypto_impl::sha3_256_state_bytes()
+    }
+
+    fn sha3256_state_init() -> Result<u64, libsodium::CryptoError> {
+        crypto_impl::sha3_256_state_init().map_err(to_wai_error)
+    }
+
+    fn sha3256_state_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
+        crypto_impl::sha3_256_state_update(state_id, &data).map_err(to_wai_error)
+    }
+
+    fn sha3256_state_final(state_id: u64) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::sha3_256_state_final(state_id).map_err(to_wai_error)
+    }
+
+    fn sha3256_state_destroy(state_id: u64) {
+        crypto_impl::sha3_256_state_destroy(state_id)
+    }
+
+    // ========================================================================
+    // SHA3-512 State
+    // ========================================================================
+
+    fn sha3512_state_state_bytes() -> u32 {
+        crypto_impl::sha3_512_state_bytes()
+    }
+
+    fn sha3512_state_init() -> Result<u64, libsodium::CryptoError> {
+        crypto_impl::sha3_512_state_init().map_err(to_wai_error)
+    }
+
+    fn sha3512_state_update(state_id: u64, data: Vec<u8>) -> Result<(), libsodium::CryptoError> {
+        crypto_impl::sha3_512_state_update(state_id, &data).map_err(to_wai_error)
+    }
+
+    fn sha3512_state_final(state_id: u64) -> Result<Vec<u8>, libsodium::CryptoError> {
+        crypto_impl::sha3_512_state_final(state_id).map_err(to_wai_error)
+    }
+
+    fn sha3512_state_destroy(state_id: u64) {
+        crypto_impl::sha3_512_state_destroy(state_id)
     }
 
     // ========================================================================
