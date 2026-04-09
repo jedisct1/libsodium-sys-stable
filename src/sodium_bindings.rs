@@ -3401,7 +3401,7 @@ unsafe extern "C" {
     pub fn sodium_ip2bin(
         bin: *mut libc::c_uchar,
         ip: *const libc::c_char,
-        ip_len: usize,
+        ip_len_: usize,
     ) -> libc::c_int;
 }
 unsafe extern "C" {

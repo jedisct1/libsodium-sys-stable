@@ -10,21 +10,21 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.23.2"
+version = "1.23.3"
 
 [build-dependencies]
-cc = "1.2.57"
+cc = "1.2.59"
 libflate = "2.2.1"
 minisign-verify = "0.2.5"
 pkg-config = "0.3.32"
-tar = "0.4.44"
-ureq = { version = "3.2.0", default-features = false }
+tar = "0.4.45"
+ureq = { version = "3.3.0", default-features = false }
 vcpkg = "0.2.15"
-zip = { version = "8.2", default-features = false, features = ["deflate"] }
+zip = { version = "8.5", default-features = false, features = ["deflate"] }
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
-wit-bindgen = { version = "0.54", optional = true, default-features = false, features = ["macros"] }
+wit-bindgen = { version = "0.55", optional = true, default-features = false, features = ["macros"] }
 wai-bindgen-rust = { version = "0.2.3", optional = true }
 
 [lib]
