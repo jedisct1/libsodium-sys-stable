@@ -340,6 +340,7 @@ def main():
     print("\nGenerating WAI output...")
     wai_output = generate_wai(parsed)
 
+    wai_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing WAI to: {wai_path}")
     wai_path.write_text(wai_output)
 

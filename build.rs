@@ -509,8 +509,6 @@ fn install_from_source() -> Result<(), String> {
 }
 
 fn main() {
-    dbg!("Compiling for target:", Target::get().name);
-
     println!("cargo:rerun-if-env-changed=SODIUM_LIB_DIR");
     println!("cargo:rerun-if-env-changed=SODIUM_SHARED");
     println!("cargo:rerun-if-env-changed=SODIUM_USE_PKG_CONFIG");

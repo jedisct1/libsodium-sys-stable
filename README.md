@@ -1,7 +1,8 @@
-# libsodium-sys
+# libsodium-sys-stable
 
-A patched version of the `libsodium-sys` crate that installs stable
-versions of libsodium instead of point releases.
+A patched version of the `libsodium-sys` crate published as
+`libsodium-sys-stable` that installs stable versions of libsodium
+instead of point releases.
 
 ## Cargo Features
 
@@ -81,7 +82,7 @@ The `wasmer-wai` feature enables building libsodium with WAI (WebAssembly Interf
 cargo build --target wasm32-wasip1 --features wasmer-wai
 ```
 
-The WAI interface is defined in `wai/libsodium.wai` and exposes nearly all of libsodium's functionality:
+The WAI interface is defined in `wai/libsodium.wai` (generated from `wit/libsodium.wit` by `wit_to_wai.py`) and exposes nearly all of libsodium's functionality:
 
 **Core:**
 - Library initialization and version info
@@ -126,10 +127,9 @@ The WAI interface is defined in `wai/libsodium.wai` and exposes nearly all of li
 The build system searches for libsodium in the following order:
 
 1. If `SODIUM_LIB_DIR` is set, use the specified library directory
-2. If `SODIUM_USE_PKG_CONFIG` is set or the `use-pkg-config` feature is enabled, try pkg-config
-3. If on Windows and vcpkg is available, try vcpkg
-4. Build from source (downloading if needed, unless archives are in `SODIUM_DIST_DIR`)
-5. On Windows MSVC/MinGW targets only: download pre-compiled binaries
+2. If `SODIUM_USE_PKG_CONFIG` is set or the `use-pkg-config` feature is enabled, try pkg-config, then vcpkg as a Windows fallback
+3. Build from source (downloading if needed, unless archives are in `SODIUM_DIST_DIR`)
+4. On Windows MSVC/MinGW targets only, if building from source fails: download pre-compiled binaries
 
 ## Security
 

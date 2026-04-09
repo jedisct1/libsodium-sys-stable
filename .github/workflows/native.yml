@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cargo Version
-        run: cargo version
+        run: cargo --version
 
       - name: Cargo Test
         run: cargo test --target ${{ matrix.target }}
