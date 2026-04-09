@@ -4,3 +4,4 @@ Cargo.lock
 src/a.sh
 zig-cache
 *~
+.swival
