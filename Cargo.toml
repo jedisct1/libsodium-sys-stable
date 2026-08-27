@@ -13,18 +13,18 @@ categories = ["cryptography", "api-bindings"]
 version = "1.24.0"
 
 [build-dependencies]
-cc = "1.2.59"
-libflate = "2.2.1"
+cc = "1.4.4"
+libflate = "2.3.1"
 minisign-verify = "0.2.5"
-pkg-config = "0.3.32"
-tar = "0.4.45"
-ureq = { version = "3.3.0", default-features = false }
+pkg-config = "0.3.34"
+tar = "0.4.46"
+ureq = { version = "3.4.0", default-features = false }
 vcpkg = "0.2.15"
-zip = { version = "8.5", default-features = false, features = ["deflate"] }
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
-wit-bindgen = { version = "0.55", optional = true, default-features = false, features = ["macros"] }
+wit-bindgen = { version = "0.61", optional = true, default-features = false, features = ["macros"] }
 wai-bindgen-rust = { version = "0.2.3", optional = true }
 
 [lib]
