@@ -157,6 +157,43 @@ fn get_precompiled_lib_dir_msvc_arm64(install_dir: &Path) -> PathBuf {
     }
 }
 
+fn compile_libsodium_wasm_freestanding(
+    source_dir: &Path,
+    install_dir: &Path,
+) -> Result<PathBuf, String> {
+    use std::process::Command;
+
+    let build_output = Command::new("zig")
+        .current_dir(source_dir)
+        .arg("build")
+        .arg("--prefix")
+        .arg(install_dir)
+        .args([
+            "-Dtarget=wasm32-freestanding",
+            "-Dwasm_freestanding_libc=false",
+            "-Doptimize=ReleaseFast",
+            "-Dstatic=true",
+            "-Dshared=false",
+            "-Dtest=false",
+        ])
+        .output()
+        .map_err(|error| {
+            format!(
+                "Failed to run 'zig build' for wasm32-freestanding: {error}\n\
+                 The Zig SDK needs to be installed in order to cross-compile to WebAssembly."
+            )
+        })?;
+    if !build_output.status.success() {
+        return Err(format!(
+            "Failed to build libsodium for wasm32-freestanding.\n{}\n{}",
+            String::from_utf8_lossy(&build_output.stdout),
+            String::from_utf8_lossy(&build_output.stderr)
+        ));
+    }
+
+    Ok(install_dir.join("lib"))
+}
+
 // Compile libsodium from source using the traditional autoconf procedure, and return the directory containing the compiled library
 fn compile_libsodium_traditional(
     target: &str,
@@ -169,29 +206,10 @@ fn compile_libsodium_traditional(
     let build_compiler = cc::Build::new().get_compiler();
     let mut compiler = build_compiler.path().to_str().unwrap().to_string();
     let mut cflags = build_compiler.cflags_env().into_string().unwrap();
-    let mut ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
+    let ldflags = env::var("SODIUM_LDFLAGS").unwrap_or_default();
     let host_arg;
     let help;
-    let mut configure_extra = vec![];
-
-    if target.contains("-wasi") {
-        // Handle wasm32-wasi (wasip1) and wasm32-wasip2 targets
-        // Also compatible with Wasmer WASIX (superset of WASI)
-        // Zig compiles to wasm32-wasi which is compatible with both
-        compiler = "zig cc".to_string();
-        cflags += " -target wasm32-wasi";
-        ldflags += " -target wasm32-wasi";
-        host_arg = "--host=wasm32-wasi".to_string();
-        configure_extra.push("--disable-ssp");
-        configure_extra.push("--without-pthreads");
-        env::set_var("AR", "zig ar");
-        env::set_var("RANLIB", "zig ranlib");
-        help = "The Zig SDK needs to be installed in order to cross-compile to WebAssembly.\n\
-                For WASI component support, use Rust 1.82+ with:\n\
-                cargo build --target wasm32-wasip2 --features wasi-component\n\
-                For Wasmer WAI support, use:\n\
-                cargo build --target wasm32-wasi --features wasmer-wai\n";
-    } else if target.contains("-ios") {
+    if target.contains("-ios") {
         // Determine Xcode directory path
         let xcode_select_output = Command::new("xcode-select").arg("-p").output().unwrap();
         if !xcode_select_output.status.success() {
@@ -296,7 +314,6 @@ fn compile_libsodium_traditional(
         .current_dir(source_dir)
         .arg(&prefix_arg)
         .arg(&host_arg)
-        .args(configure_extra)
         .arg("--enable-shared=no")
         .arg("--disable-dependency-tracking")
         .output();
@@ -487,7 +504,11 @@ fn install_from_source() -> Result<(), String> {
     archive.unpack(&source_dir).unwrap();
     source_dir.push(basedir);
 
-    let lib_dir = compile_libsodium_traditional(&target, &source_dir, &install_dir)?;
+    let lib_dir = if target.contains("-wasi") {
+        compile_libsodium_wasm_freestanding(&source_dir, &install_dir)?
+    } else {
+        compile_libsodium_traditional(&target, &source_dir, &install_dir)?
+    };
 
     if target.contains("msvc") {
         println!("cargo:rustc-link-lib=static=libsodium");
