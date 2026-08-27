@@ -1920,7 +1920,7 @@ impl exports::libsodium::crypto::sha3256_state::Guest for Component {
         crypto_impl::sha3_256_state_update(state_id, &data).map_err(to_wit_error)
     }
 
-    fn r#final(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+    fn final_(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
         crypto_impl::sha3_256_state_final(state_id).map_err(to_wit_error)
     }
 
@@ -1949,7 +1949,7 @@ impl exports::libsodium::crypto::sha3512_state::Guest for Component {
         crypto_impl::sha3_512_state_update(state_id, &data).map_err(to_wit_error)
     }
 
-    fn r#final(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
+    fn final_(state_id: u64) -> Result<Vec<u8>, exports::libsodium::crypto::types::CryptoError> {
         crypto_impl::sha3_512_state_final(state_id).map_err(to_wit_error)
     }
 
