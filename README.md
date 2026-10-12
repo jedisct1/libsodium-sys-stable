@@ -12,6 +12,7 @@ instead of point releases.
 - `use-pkg-config`: Force the use of pkg-config to find libsodium
 - `wasi-component`: Build as a WASI component exposing libsodium functions
 - `wasmer-wai`: Build with WAI (WebAssembly Interfaces) support for Wasmer runtime
+- `wasmer`: On WASI targets, build libsodium for the CPU features that run fastest on runtimes such as Wasmer and Wasmtime (but won't run elsewhere)
 
 ## Build Configuration
 
@@ -41,6 +42,12 @@ On Windows, if libsodium is not found via environment variables or pkg-config, p
 
 #### WebAssembly/WASI
 Compiling to WebAssembly/WASI targets requires the Zig compiler to be installed. The build automatically configures the appropriate flags for WASI compilation.
+
+By default, it targets the `lime1` CPU, a conservative feature set meant to be widely supported by WebAssembly runtimes.
+
+The `wasmer` feature compiles code that uses extensions that are currently only enabled by default on Wasmer (including Wasmer Cloud) and Wasmtime (including Fastly Compute@Edge).
+
+On Wasmer, this makes Poly1305 about 3 times faster, and Ed25519 and X25519 up to 4 times faster.
 
 #### iOS
 iOS builds are supported for multiple architectures:
@@ -81,6 +88,8 @@ The `wasmer-wai` feature enables building libsodium with WAI (WebAssembly Interf
 ```bash
 cargo build --target wasm32-wasip1 --features wasmer-wai
 ```
+
+Add the `wasmer` feature for much faster elliptic curve operations and Poly1305 with Wasmer's Cranelift and LLVM backends.
 
 The WAI interface is defined in `wai/libsodium.wai` (generated from `wit/libsodium.wit` by `wit_to_wai.py`) and exposes nearly all of libsodium's functionality:
 

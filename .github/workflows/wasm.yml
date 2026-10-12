@@ -15,6 +15,9 @@ jobs:
           - target: wasm32-wasip1
             interface: WAI
             features: --features wasmer-wai
+          - target: wasm32-wasip1
+            interface: WAI wasmer
+            features: --features wasmer-wai,wasmer
           - target: wasm32-wasip2
             interface: plain
             features: ""

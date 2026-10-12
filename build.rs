@@ -163,6 +163,11 @@ fn compile_libsodium_wasm_freestanding(
 ) -> Result<PathBuf, String> {
     use std::process::Command;
 
+    let cpu = if cfg!(feature = "wasmer") {
+        "-Dcpu=lime1+wide_arithmetic"
+    } else {
+        "-Dcpu=lime1"
+    };
     let build_output = Command::new("zig")
         .current_dir(source_dir)
         .arg("build")
@@ -170,6 +175,7 @@ fn compile_libsodium_wasm_freestanding(
         .arg(install_dir)
         .args([
             "-Dtarget=wasm32-freestanding",
+            cpu,
             "-Dwasm_freestanding_libc=false",
             "-Doptimize=ReleaseFast",
             "-Dstatic=true",
