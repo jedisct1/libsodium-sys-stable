@@ -10,15 +10,15 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.24.0"
+version = "1.24.1"
 
 [build-dependencies]
-cc = "1.4.4"
-libflate = "2.3.1"
+cc = "1.7.0"
+libflate = "2.3.2"
 minisign-verify = "0.2.5"
 pkg-config = "0.3.34"
 tar = "0.4.46"
-ureq = { version = "3.4.0", default-features = false }
+ureq = { version = "3.4.2", default-features = false }
 vcpkg = "0.2.15"
 zip = { version = "8.6", default-features = false, features = ["deflate"] }
 
