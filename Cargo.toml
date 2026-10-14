@@ -10,10 +10,10 @@ links = "sodium"
 name = "libsodium-sys-stable"
 repository = "https://github.com/jedisct1/libsodium-sys-stable"
 categories = ["cryptography", "api-bindings"]
-version = "1.24.2"
+version = "1.24.3"
 
 [build-dependencies]
-cc = "1.7.0"
+cc = "1.8.0"
 libflate = "2.3.2"
 minisign-verify = "0.2.5"
 pkg-config = "0.3.34"
