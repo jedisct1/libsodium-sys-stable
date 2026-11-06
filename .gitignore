@@ -5,3 +5,4 @@ src/a.sh
 zig-cache
 *~
 .swival
+tmp/
