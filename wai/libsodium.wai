@@ -18,8 +18,14 @@ variant crypto-error {
     not-initialized,
 }
 
-/// Key pair for public-key cryptography
-record key-pair {
+/// Key pair for public-key authenticated encryption
+record box-key-pair {
+    public-key: list<u8>,
+    secret-key: list<u8>,
+}
+
+/// Key pair for key encapsulation
+record kem-key-pair {
     public-key: list<u8>,
     secret-key: list<u8>,
 }
@@ -125,10 +131,10 @@ crypto-box-seed-bytes: func() -> u32
 crypto-box-beforenm-bytes: func() -> u32
 
 /// Generate a random key pair
-crypto-box-keypair: func() -> key-pair
+crypto-box-keypair: func() -> box-key-pair
 
 /// Generate a key pair from a seed
-crypto-box-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+crypto-box-seed-keypair: func(seed: list<u8>) -> expected<box-key-pair, crypto-error>
 
 /// Encrypt and authenticate a message for a recipient
 crypto-box-easy: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>
@@ -1238,10 +1244,10 @@ kem-xwing-shared-secret-bytes: func() -> u32
 kem-xwing-seed-bytes: func() -> u32
 
 /// Generate a key pair from a seed
-kem-xwing-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+kem-xwing-seed-keypair: func(seed: list<u8>) -> expected<kem-key-pair, crypto-error>
 
 /// Generate a random key pair
-kem-xwing-keypair: func() -> key-pair
+kem-xwing-keypair: func() -> kem-key-pair
 
 /// Encapsulate: generate ciphertext and shared secret for a public key
 kem-xwing-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
@@ -1272,10 +1278,10 @@ kem-seed-bytes: func() -> u32
 kem-primitive: func() -> string
 
 /// Generate a key pair from a seed
-kem-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+kem-seed-keypair: func(seed: list<u8>) -> expected<kem-key-pair, crypto-error>
 
 /// Generate a random key pair
-kem-keypair: func() -> key-pair
+kem-keypair: func() -> kem-key-pair
 
 /// Encapsulate: generate ciphertext and shared secret for a public key
 kem-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
@@ -1303,10 +1309,10 @@ kem-mlkem768-shared-secret-bytes: func() -> u32
 kem-mlkem768-seed-bytes: func() -> u32
 
 /// Generate a key pair from a seed
-kem-mlkem768-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+kem-mlkem768-seed-keypair: func(seed: list<u8>) -> expected<kem-key-pair, crypto-error>
 
 /// Generate a random key pair
-kem-mlkem768-keypair: func() -> key-pair
+kem-mlkem768-keypair: func() -> kem-key-pair
 
 /// Encapsulate: generate ciphertext and shared secret for a public key
 kem-mlkem768-enc: func(pk: list<u8>) -> expected<tuple<list<u8>, list<u8>>, crypto-error>
@@ -1610,10 +1616,10 @@ crypto-box-xchacha20poly1305-seal-bytes: func() -> u32
 crypto-box-xchacha20poly1305-beforenm-bytes: func() -> u32
 
 /// Generate a random key pair
-crypto-box-xchacha20poly1305-keypair: func() -> key-pair
+crypto-box-xchacha20poly1305-keypair: func() -> box-key-pair
 
 /// Generate a key pair from a seed
-crypto-box-xchacha20poly1305-seed-keypair: func(seed: list<u8>) -> expected<key-pair, crypto-error>
+crypto-box-xchacha20poly1305-seed-keypair: func(seed: list<u8>) -> expected<box-key-pair, crypto-error>
 
 /// Encrypt and authenticate a message
 crypto-box-xchacha20poly1305-easy: func(message: list<u8>, nonce: list<u8>, recipient-pk: list<u8>, sender-sk: list<u8>) -> expected<list<u8>, crypto-error>

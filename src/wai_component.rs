@@ -139,9 +139,9 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::box_seed_bytes()
     }
 
-    fn crypto_box_keypair() -> libsodium::KeyPair {
+    fn crypto_box_keypair() -> libsodium::BoxKeyPair {
         let (public_key, secret_key) = crypto_impl::box_keypair();
-        libsodium::KeyPair {
+        libsodium::BoxKeyPair {
             public_key,
             secret_key,
         }
@@ -149,9 +149,9 @@ impl libsodium::Libsodium for Libsodium {
 
     fn crypto_box_seed_keypair(
         seed: Vec<u8>,
-    ) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    ) -> Result<libsodium::BoxKeyPair, libsodium::CryptoError> {
         crypto_impl::box_seed_keypair(&seed)
-            .map(|(public_key, secret_key)| libsodium::KeyPair {
+            .map(|(public_key, secret_key)| libsodium::BoxKeyPair {
                 public_key,
                 secret_key,
             })
@@ -1090,18 +1090,18 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kem_xwing_seed_bytes()
     }
 
-    fn kem_xwing_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    fn kem_xwing_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KemKeyPair, libsodium::CryptoError> {
         crypto_impl::kem_xwing_seed_keypair(&seed)
-            .map(|(public_key, secret_key)| libsodium::KeyPair {
+            .map(|(public_key, secret_key)| libsodium::KemKeyPair {
                 public_key,
                 secret_key,
             })
             .map_err(to_wai_error)
     }
 
-    fn kem_xwing_keypair() -> libsodium::KeyPair {
+    fn kem_xwing_keypair() -> libsodium::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_xwing_keypair();
-        libsodium::KeyPair {
+        libsodium::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -1143,18 +1143,18 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::kem_primitive()
     }
 
-    fn kem_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    fn kem_seed_keypair(seed: Vec<u8>) -> Result<libsodium::KemKeyPair, libsodium::CryptoError> {
         crypto_impl::kem_seed_keypair(&seed)
-            .map(|(public_key, secret_key)| libsodium::KeyPair {
+            .map(|(public_key, secret_key)| libsodium::KemKeyPair {
                 public_key,
                 secret_key,
             })
             .map_err(to_wai_error)
     }
 
-    fn kem_keypair() -> libsodium::KeyPair {
+    fn kem_keypair() -> libsodium::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_keypair();
-        libsodium::KeyPair {
+        libsodium::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -1194,18 +1194,18 @@ impl libsodium::Libsodium for Libsodium {
 
     fn kem_mlkem768_seed_keypair(
         seed: Vec<u8>,
-    ) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    ) -> Result<libsodium::KemKeyPair, libsodium::CryptoError> {
         crypto_impl::kem_mlkem768_seed_keypair(&seed)
-            .map(|(public_key, secret_key)| libsodium::KeyPair {
+            .map(|(public_key, secret_key)| libsodium::KemKeyPair {
                 public_key,
                 secret_key,
             })
             .map_err(to_wai_error)
     }
 
-    fn kem_mlkem768_keypair() -> libsodium::KeyPair {
+    fn kem_mlkem768_keypair() -> libsodium::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_mlkem768_keypair();
-        libsodium::KeyPair {
+        libsodium::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -2623,9 +2623,9 @@ impl libsodium::Libsodium for Libsodium {
         crypto_impl::box_xchacha20poly1305_seal_bytes()
     }
 
-    fn crypto_box_xchacha20poly1305_keypair() -> libsodium::KeyPair {
+    fn crypto_box_xchacha20poly1305_keypair() -> libsodium::BoxKeyPair {
         let (pk, sk) = crypto_impl::box_xchacha20poly1305_keypair();
-        libsodium::KeyPair {
+        libsodium::BoxKeyPair {
             public_key: pk,
             secret_key: sk,
         }
@@ -2633,10 +2633,10 @@ impl libsodium::Libsodium for Libsodium {
 
     fn crypto_box_xchacha20poly1305_seed_keypair(
         seed: Vec<u8>,
-    ) -> Result<libsodium::KeyPair, libsodium::CryptoError> {
+    ) -> Result<libsodium::BoxKeyPair, libsodium::CryptoError> {
         let (pk, sk) =
             crypto_impl::box_xchacha20poly1305_seed_keypair(&seed).map_err(to_wai_error)?;
-        Ok(libsodium::KeyPair {
+        Ok(libsodium::BoxKeyPair {
             public_key: pk,
             secret_key: sk,
         })

@@ -159,9 +159,9 @@ impl exports::libsodium::crypto::crypto_box::Guest for Component {
         crypto_impl::box_seed_bytes()
     }
 
-    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+    fn keypair() -> exports::libsodium::crypto::types::BoxKeyPair {
         let (public_key, secret_key) = crypto_impl::box_keypair();
-        exports::libsodium::crypto::types::KeyPair {
+        exports::libsodium::crypto::types::BoxKeyPair {
             public_key,
             secret_key,
         }
@@ -170,12 +170,12 @@ impl exports::libsodium::crypto::crypto_box::Guest for Component {
     fn seed_keypair(
         seed: Vec<u8>,
     ) -> Result<
-        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::BoxKeyPair,
         exports::libsodium::crypto::types::CryptoError,
     > {
         crypto_impl::box_seed_keypair(&seed)
             .map(
-                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                |(public_key, secret_key)| exports::libsodium::crypto::types::BoxKeyPair {
                     public_key,
                     secret_key,
                 },
@@ -1183,12 +1183,12 @@ impl exports::libsodium::crypto::kem_xwing::Guest for Component {
     fn seed_keypair(
         seed: Vec<u8>,
     ) -> Result<
-        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::KemKeyPair,
         exports::libsodium::crypto::types::CryptoError,
     > {
         crypto_impl::kem_xwing_seed_keypair(&seed)
             .map(
-                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KemKeyPair {
                     public_key,
                     secret_key,
                 },
@@ -1196,9 +1196,9 @@ impl exports::libsodium::crypto::kem_xwing::Guest for Component {
             .map_err(to_wit_error)
     }
 
-    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+    fn keypair() -> exports::libsodium::crypto::types::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_xwing_keypair();
-        exports::libsodium::crypto::types::KeyPair {
+        exports::libsodium::crypto::types::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -1250,12 +1250,12 @@ impl exports::libsodium::crypto::kem::Guest for Component {
     fn seed_keypair(
         seed: Vec<u8>,
     ) -> Result<
-        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::KemKeyPair,
         exports::libsodium::crypto::types::CryptoError,
     > {
         crypto_impl::kem_seed_keypair(&seed)
             .map(
-                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KemKeyPair {
                     public_key,
                     secret_key,
                 },
@@ -1263,9 +1263,9 @@ impl exports::libsodium::crypto::kem::Guest for Component {
             .map_err(to_wit_error)
     }
 
-    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+    fn keypair() -> exports::libsodium::crypto::types::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_keypair();
-        exports::libsodium::crypto::types::KeyPair {
+        exports::libsodium::crypto::types::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -1313,12 +1313,12 @@ impl exports::libsodium::crypto::kem_mlkem768::Guest for Component {
     fn seed_keypair(
         seed: Vec<u8>,
     ) -> Result<
-        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::KemKeyPair,
         exports::libsodium::crypto::types::CryptoError,
     > {
         crypto_impl::kem_mlkem768_seed_keypair(&seed)
             .map(
-                |(public_key, secret_key)| exports::libsodium::crypto::types::KeyPair {
+                |(public_key, secret_key)| exports::libsodium::crypto::types::KemKeyPair {
                     public_key,
                     secret_key,
                 },
@@ -1326,9 +1326,9 @@ impl exports::libsodium::crypto::kem_mlkem768::Guest for Component {
             .map_err(to_wit_error)
     }
 
-    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+    fn keypair() -> exports::libsodium::crypto::types::KemKeyPair {
         let (public_key, secret_key) = crypto_impl::kem_mlkem768_keypair();
-        exports::libsodium::crypto::types::KeyPair {
+        exports::libsodium::crypto::types::KemKeyPair {
             public_key,
             secret_key,
         }
@@ -2906,9 +2906,9 @@ impl exports::libsodium::crypto::crypto_box_xchacha20poly1305::Guest for Compone
         crypto_impl::box_xchacha20poly1305_seal_bytes()
     }
 
-    fn keypair() -> exports::libsodium::crypto::types::KeyPair {
+    fn keypair() -> exports::libsodium::crypto::types::BoxKeyPair {
         let (pk, sk) = crypto_impl::box_xchacha20poly1305_keypair();
-        exports::libsodium::crypto::types::KeyPair {
+        exports::libsodium::crypto::types::BoxKeyPair {
             public_key: pk,
             secret_key: sk,
         }
@@ -2917,12 +2917,12 @@ impl exports::libsodium::crypto::crypto_box_xchacha20poly1305::Guest for Compone
     fn seed_keypair(
         seed: Vec<u8>,
     ) -> Result<
-        exports::libsodium::crypto::types::KeyPair,
+        exports::libsodium::crypto::types::BoxKeyPair,
         exports::libsodium::crypto::types::CryptoError,
     > {
         let (pk, sk) =
             crypto_impl::box_xchacha20poly1305_seed_keypair(&seed).map_err(to_wit_error)?;
-        Ok(exports::libsodium::crypto::types::KeyPair {
+        Ok(exports::libsodium::crypto::types::BoxKeyPair {
             public_key: pk,
             secret_key: sk,
         })
