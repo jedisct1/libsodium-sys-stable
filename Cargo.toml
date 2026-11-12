@@ -18,9 +18,9 @@ libflate = "2.3.2"
 minisign-verify = "0.3.0"
 pkg-config = "0.3.34"
 tar = "0.4.46"
-ureq = { version = "3.5.1", default-features = false }
+ureq = { version = "3.5.2", default-features = false }
 vcpkg = "0.2.15"
-zip = { version = "9.4", default-features = false, features = ["deflate"] }
+zip = { version = "9.5", default-features = false, features = ["deflate"] }
 
 [dependencies]
 libc = { version = "0.2", default-features = false }
