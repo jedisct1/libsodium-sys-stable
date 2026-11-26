@@ -77,7 +77,7 @@ async fn main() -> Result<()> {
     // Test: SHA-256
     println!("\nTesting SHA-256...");
     let msg = b"Hello, libsodium WAI!";
-    let hash = libsodium.sha256(&mut store, msg)?;
+    let hash = libsodium.sha256_hash(&mut store, msg)?;
     print!("  sha256('Hello, libsodium WAI!') = ");
     for b in &hash {
         print!("{:02x}", b);
@@ -105,16 +105,16 @@ async fn main() -> Result<()> {
 
     // Test: Box (public-key encryption)
     println!("\nTesting box (X25519-XSalsa20-Poly1305)...");
-    let alice = libsodium.box_keypair(&mut store)?;
-    let bob = libsodium.box_keypair(&mut store)?;
+    let alice = libsodium.crypto_box_keypair(&mut store)?;
+    let bob = libsodium.crypto_box_keypair(&mut store)?;
     println!("  Alice pk: {} bytes, Bob pk: {} bytes", alice.public_key.len(), bob.public_key.len());
     let nonce: Vec<u8> = libsodium.random_bytes(&mut store, 24)?;
     let msg = b"Hello Bob!";
-    let ct = libsodium.box_easy(&mut store, msg, &nonce, &bob.public_key, &alice.secret_key)?;
+    let ct = libsodium.crypto_box_easy(&mut store, msg, &nonce, &bob.public_key, &alice.secret_key)?;
     match ct {
         Ok(ct) => {
             println!("  box_easy() = {} bytes", ct.len());
-            let pt = libsodium.box_open_easy(&mut store, &ct, &nonce, &alice.public_key, &bob.secret_key)?;
+            let pt = libsodium.crypto_box_open_easy(&mut store, &ct, &nonce, &alice.public_key, &bob.secret_key)?;
             match pt {
                 Ok(pt) => println!("  box_open_easy() = '{}'", String::from_utf8_lossy(&pt)),
                 Err(e) => println!("  decrypt error: {:?}", e),
@@ -143,7 +143,7 @@ async fn main() -> Result<()> {
 
     // Test: BLAKE2b
     println!("\nTesting generichash (BLAKE2b)...");
-    let hash = libsodium.generichash(&mut store, b"test message", 32)?;
+    let hash = libsodium.generichash_hash(&mut store, b"test message", 32)?;
     match hash {
         Ok(h) => {
             print!("  generichash() = ");
@@ -158,14 +158,14 @@ async fn main() -> Result<()> {
     // Test: Utilities
     println!("\nTesting utilities...");
     let data = vec![0xde, 0xad, 0xbe, 0xef];
-    let hex = libsodium.bin2hex(&mut store, &data)?;
+    let hex = libsodium.utils_bin2hex(&mut store, &data)?;
     println!("  bin2hex([de,ad,be,ef]) = '{}'", hex);
-    let decoded = libsodium.hex2bin(&mut store, &hex)?;
+    let decoded = libsodium.utils_hex2bin(&mut store, &hex)?;
     match decoded {
         Ok(d) => println!("  hex2bin('{}') = {:02x?}", hex, d),
         Err(e) => println!("  error: {:?}", e),
     }
-    let b64 = libsodium.bin2base64(&mut store, &data)?;
+    let b64 = libsodium.utils_bin2base64(&mut store, &data)?;
     println!("  bin2base64() = '{}'", b64);
 
     println!("\n=== All WAI tests passed! ===");
